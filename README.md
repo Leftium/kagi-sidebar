@@ -5,6 +5,8 @@ moves the standard web search filters into a compact left sidebar on desktop,
 while preserving Kagi's native search behavior, links, forms, dropdowns, and
 result rendering.
 
+<img width="1103" height="748" alt="image" src="https://github.com/user-attachments/assets/3f9fa60f-6269-4cdb-af89-da00b632cc1b" />
+
 ## Install
 
 1. Open Kagi Custom CSS settings:
