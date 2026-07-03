@@ -1,0 +1,53 @@
+# Kagi Sidebar
+
+Kagi Sidebar is an unofficial CSS-only customization for Kagi Custom CSS. It
+moves the standard web search filters into a compact left sidebar on desktop,
+while preserving Kagi's native search behavior, links, forms, dropdowns, and
+result rendering.
+
+## Install
+
+1. Open Kagi Custom CSS settings:
+   https://kagi.com/settings/custom_css
+2. Paste the contents of `kagi-sidebar.css`.
+3. Save, then open a Kagi web search result page.
+
+If the saved CSS needs to be bypassed, add `no_css=1` to a Kagi URL:
+
+```text
+https://kagi.com/search?q=test&no_css=1
+```
+
+## Support Scope
+
+This release targets desktop Kagi web search only:
+
+- Supported: standard Kagi web/all search result pages at `1100px` and wider.
+- Fallback: below `1100px`, Kagi's native horizontal filter toolbar remains.
+- Out of scope: Images, Videos, News, Podcasts, Maps, Assistant, settings pages,
+  and mobile/narrow layouts.
+
+The stylesheet uses modern CSS, including `:has()`, and depends on Kagi's
+current search filter markup. Kagi markup changes may require stylesheet updates.
+
+## Verification
+
+After installing, check:
+
+- Desktop web search shows the left sidebar.
+- Narrow viewports and unsupported modes keep Kagi's native toolbar.
+- Matching, Time, Region, Sort, Lens, Advanced, and Clear keep their native
+  behavior.
+- Active filters are visible, long Region labels clip cleanly, and light/dark
+  themes remain legible.
+
+## Project Files
+
+- `kagi-sidebar.css` - pasteable Kagi Custom CSS stylesheet.
+- `SPEC.md` - release scope, behavior, and implementation notes.
+- `making-kagi-search-filters-easier-to-customize.md` - upstream hook proposal
+  for Kagi engineers and designers.
+
+## License
+
+MIT. See `LICENSE`.
