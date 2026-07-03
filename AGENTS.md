@@ -2,15 +2,15 @@
 
 ## Project Context
 
-This repo is a personal-use proof of concept for moving Kagi web search options
-from the horizontal toolbar into a compact left sidebar.
+This repo contains a CSS-only Kagi Custom CSS customization that moves Kagi web
+search options from the horizontal toolbar into a compact left sidebar.
 
 Primary files:
 
 - `SPEC.md` - Product and implementation spec.
-- `kagi-sidebar.css` - CSS-only Kagi Custom CSS spike.
+- `kagi-sidebar.css` - CSS-only Kagi Custom CSS stylesheet.
 
-Keep the first pass scoped to Kagi web search (`/search`) on desktop. Images,
+Keep the release scoped to Kagi web search (`/search`) on desktop. Images,
 Videos, News, Podcasts, Maps, Assistant, settings pages, and mobile/narrow
 viewports are out of scope unless the user explicitly expands the target.
 
@@ -62,13 +62,13 @@ web-search-only CSS with the active All nav item:
 body:has(header nav a.n_se.--active)
 ```
 
-Use the desktop breakpoint from the spike unless manual testing says otherwise:
+Use the release desktop breakpoint unless manual testing says otherwise:
 
 ```css
 @media (min-width: 1100px)
 ```
 
-## CSS Spike Notes
+## CSS Implementation Notes
 
 The current CSS-only approach:
 
@@ -111,6 +111,12 @@ The CSS should stay pasteable into Kagi Settings > Appearance > Custom CSS. Keep
 it below Kagi's Custom CSS character limit. The last measured size of
 `kagi-sidebar.css` was about 20 KB.
 
+Kagi Custom CSS settings:
+
+```text
+https://kagi.com/settings/custom_css
+```
+
 Recovery path for bad Custom CSS:
 
 ```text
@@ -146,17 +152,17 @@ Append `no_css=1` to Kagi test URLs during development to bypass any saved
 Custom CSS before inspecting native markup or injecting the local CSS file. This
 helps avoid confusing persisted account CSS with the current repo version.
 
-Temporary browser injection notes:
+Browser injection notes:
 
 - Injecting a `<style>` tag with CSS text works for quick checks.
-- Temporary injection is lost on Kagi page reloads.
+- Injected styles are lost on Kagi page reloads.
 - Fetching `http://127.0.0.1` CSS from the HTTPS Kagi page failed.
 - Loading a localhost stylesheet with `<link rel="stylesheet">` also failed.
 - For exact-file checks, base64-encode the local CSS and inject it with
   `atob(...)`, or paste the file into Kagi Custom CSS for the real test.
 
 Manual user verification is still required because Kagi Custom CSS persistence
-cannot be fully simulated by temporary page injection.
+cannot be fully simulated by browser-side injection.
 
 ## Verification Checklist
 

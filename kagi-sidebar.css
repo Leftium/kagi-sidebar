@@ -1,7 +1,8 @@
 /*
- * Kagi Sidebar CSS-only POC.
+ * Kagi Sidebar CSS-only stylesheet.
  *
  * Paste this into Kagi Settings > Appearance > Custom CSS.
+ * Direct settings URL: https://kagi.com/settings/custom_css
  * Recovery: add no_css=1 to a Kagi URL if custom CSS needs to be bypassed.
  */
 
@@ -236,10 +237,6 @@
       margin: 4px 0 9px;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_r)::before {
-      display: none;
-    }
-
     body:has(header nav a.n_se.--active) #dd_toggle_r {
       position: absolute;
     }
@@ -248,7 +245,9 @@
       order: 1;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list {
+    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list,
+    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list,
+    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list {
       position: static !important;
       display: block !important;
       visibility: visible !important;
@@ -258,7 +257,6 @@
       max-width: 100% !important;
       height: auto !important;
       max-height: none !important;
-      margin-top: 2px;
       padding: 0 !important;
       border: 0 !important;
       background: transparent !important;
@@ -268,22 +266,11 @@
     }
 
     body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list {
-      position: static !important;
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      width: 100% !important;
-      min-width: 0 !important;
-      max-width: 100% !important;
-      height: auto !important;
-      max-height: none !important;
       margin-top: 0;
-      padding: 0 !important;
-      border: 0 !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      overflow: visible !important;
-      pointer-events: auto !important;
+    }
+
+    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list {
+      margin-top: 2px;
     }
 
     body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list > ul > li:nth-child(n+6),
@@ -293,22 +280,7 @@
 
     body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list {
       order: 2;
-      position: static !important;
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      width: 100% !important;
-      min-width: 0 !important;
-      max-width: 100% !important;
-      height: auto !important;
-      max-height: none !important;
       margin-top: 3px;
-      padding: 0 !important;
-      border: 0 !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      overflow: visible !important;
-      pointer-events: auto !important;
     }
 
     body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list .list_filter_wrpr,
@@ -344,12 +316,6 @@
     body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent].ul .inner-label {
       border-bottom: 0 !important;
       box-shadow: none !important;
-    }
-
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list .inner-label {
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis;
     }
 
     body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list li,

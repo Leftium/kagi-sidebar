@@ -2,8 +2,8 @@
 
 ## Status
 
-Personal-use proof of concept. The first implementation should optimize for a
-single user's day-to-day Kagi web search workflow while keeping the design clean
+Current release: a CSS-only Kagi Custom CSS customization for desktop Kagi web
+search. It optimizes for day-to-day web search while keeping the design clean
 enough to share or expand later.
 
 ## References
@@ -14,6 +14,8 @@ enough to share or expand later.
   https://help.kagi.com/kagi/features/filtering-results.html
 - Kagi custom CSS documentation:
   https://help.kagi.com/kagi/features/custom-css.html
+- Kagi Custom CSS settings:
+  https://kagi.com/settings/custom_css
 - Google Search Sidebar reference:
   https://github.com/mnghsn/google-search-sidebar
 
@@ -40,7 +42,7 @@ and easier to inspect by moving them into a compact left sidebar.
 - Prefer a pure Kagi Custom CSS implementation when it is reliable.
 - Allow a UserScript implementation when CSS-only selectors or layout hooks are
   too brittle.
-- Keep the sidebar always enabled for the POC on desktop-width screens.
+- Keep the sidebar automatically enabled on desktop-width web search pages.
 - Leave room for a future inline/sidebar toggle without designing that full
   preference system now.
 - Use user-friendly wording in the UI, especially "Search Options" instead of
@@ -48,9 +50,9 @@ and easier to inspect by moving them into a compact left sidebar.
 
 ## Non-Goals
 
-- No browser extension package for the MVP.
-- No public distribution workflow for the MVP.
-- No support for Images, Videos, News, Podcasts, or Maps in the first pass.
+- No browser extension package for the CSS release.
+- No extension-store or userscript-registry distribution workflow.
+- No support for Images, Videos, News, Podcasts, or Maps in this release.
 - No redesign of Kagi result cards, ranking controls, or answer widgets.
 - No replacement search backend or custom filter URL model unless moving native
   controls is impossible.
@@ -58,7 +60,7 @@ and easier to inspect by moving them into a compact left sidebar.
 
 ## Target Pages
 
-MVP support is limited to Kagi web search result pages:
+This release supports Kagi web search result pages:
 
 - `https://kagi.com/search?...`
 - Only the standard web/all search mode.
@@ -74,8 +76,8 @@ The sidebar must not apply to:
 
 ## Search Options
 
-The MVP sidebar should include the options Kagi documents for filtering web
-search results:
+The sidebar should include the options Kagi documents for filtering web search
+results:
 
 - Region.
 - Order By.
@@ -91,11 +93,12 @@ Other candidates to evaluate during DOM inventory:
 - Lenses, if Kagi exposes the current lens as a search-page filter rather than a
   separate navigation concept.
 - Search mode navigation, such as Web, Images, Videos, News, and Podcasts. This
-  should stay outside MVP unless it is structurally tied to the same toolbar.
+  should stay outside this release unless it is structurally tied to the same
+  toolbar.
 - Quick Answer. This is an action/result feature, not a search option, so it
-  should stay out of the MVP sidebar.
+  should stay out of the sidebar.
 - AI image filtering. This appears relevant to image search, not the web-search
-  MVP.
+  release.
 - Safe search or family filtering, if Kagi exposes it as a per-search visible
   control. If it only exists in settings, do not add it.
 
@@ -116,7 +119,8 @@ Other candidates to evaluate during DOM inventory:
 
 ### Labeling
 
-- Use "Search Options" as the sidebar heading.
+- Do not show a separate sidebar heading in the current CSS release. If future
+  generated markup adds one, use "Search Options".
 - Use concise group labels:
   - Region
   - Sort
@@ -149,18 +153,19 @@ Other candidates to evaluate during DOM inventory:
 
 ## Responsive Behavior
 
-Suggested breakpoints, to be tuned during implementation:
+Release breakpoints:
 
 - `>= 1100px`: full sidebar enabled.
-- `900px - 1099px`: compact sidebar if the live layout has enough room.
-- `< 900px`: sidebar disabled; Kagi's native horizontal controls remain visible.
+- `< 1100px`: sidebar disabled; Kagi's native horizontal controls remain
+  visible.
 
-The final breakpoint should be based on whether the sidebar can fit without
+The breakpoint should remain based on whether the sidebar can fit without
 causing overlap, cramped result cards, or horizontal scrolling.
 
 ## Implementation Strategy
 
-Use a staged approach:
+The current release uses the CSS-only track. Keep the UserScript track as
+fallback guidance if Kagi markup changes make Custom CSS too brittle.
 
 1. DOM inventory.
    - Inspect current Kagi web search result markup.
@@ -170,7 +175,7 @@ Use a staged approach:
      region changes, verbatim mode, and personalized toggles.
    - Confirm whether unsupported modes can be detected reliably.
 
-2. CSS-only spike.
+2. CSS-only stylesheet.
    - Try moving/restyling existing Kagi controls with Kagi Custom CSS.
    - Avoid broad `nth-child` selectors unless there is no alternative.
    - Confirm styles do not leak into Images, News, or other tabs.
@@ -217,7 +222,7 @@ the UserScript track.
 
 ## UserScript Track
 
-The UserScript should be small, private, and dependency-free.
+The UserScript should be small and dependency-free.
 
 ### Matching
 
@@ -253,7 +258,8 @@ before applying the sidebar.
 
 ### Future Toggle Hook
 
-The POC should be always-on at desktop widths. If a toggle is added later:
+The current stylesheet is always on at desktop widths. If a toggle is added
+later:
 
 - Label choices as "Sidebar Options" and "Inline Options" or similarly
   user-friendly wording.
@@ -275,7 +281,7 @@ The POC should be always-on at desktop widths. If a toggle is added later:
 
 ## Acceptance Criteria
 
-The MVP is acceptable when:
+The release is acceptable when:
 
 - A normal Kagi web search shows a left sidebar on desktop-width screens.
 - Region, Order By, Time, Verbatim, and Clear work from the sidebar.
@@ -289,7 +295,7 @@ The MVP is acceptable when:
 
 ## Manual Verification Plan
 
-Run the POC against these scenarios:
+Run the release against these scenarios:
 
 - Basic search with no active filters.
 - Region changed from default.
@@ -326,4 +332,3 @@ Run the POC against these scenarios:
 - Greasy Fork distribution.
 - Browser extension packaging.
 - Screenshots or visual regression checks.
-
