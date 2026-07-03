@@ -74,7 +74,8 @@ The current CSS-only approach:
 
 - Uses `:has()` and therefore targets modern browsers only.
 - Applies only when the All/Web nav item is active.
-- Uses `position: fixed` for `._0_filters-panel`.
+- Uses `position: absolute` for `._0_filters-panel` so the sidebar scrolls
+  with the page.
 - Offsets Kagi's header, top panel, and result content by changing left padding.
 - Aligns the sidebar to Kagi's centered max-width content container on very wide
   screens instead of pinning it to the viewport edge.

@@ -30,13 +30,13 @@
     }
 
     body:has(header nav a.n_se.--active) ._0_filters-panel {
-      position: fixed !important;
+      position: absolute !important;
       top: var(--ksb-sidebar-top);
       left: var(--ksb-sidebar-left);
       z-index: 45;
       width: var(--ksb-sidebar-width);
       height: auto;
-      max-height: calc(100vh - var(--ksb-sidebar-top) - 20px);
+      max-height: none;
       overflow: visible;
       padding: 0 8px 0 0;
       background: transparent;
