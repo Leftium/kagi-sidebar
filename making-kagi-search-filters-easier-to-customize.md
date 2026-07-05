@@ -1,5 +1,10 @@
 # Making Kagi Search Filters Easier to Customize with CSS
 
+Superseded by
+[`making-kagi-simpler-smaller-easier-to-customize.md`](./making-kagi-simpler-smaller-easier-to-customize.md).
+This narrower draft is kept as historical context and may not reflect the latest
+stylesheet details.
+
 Audience: Kagi engineers, designers, and frontend maintainers.
 
 ## Summary

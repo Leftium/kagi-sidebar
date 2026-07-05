@@ -149,9 +149,9 @@ concept is not expressed as stable semantics.
 
 ## Findings
 
-1. Result mode is inferred from nav implementation details.
+1. Result mode is inferred from implementation details.
 
-   The current sidebar CSS gates web-search-only styling with:
+   The initial sidebar CSS gated web-search-only styling with:
 
    ```css
    body:has(header nav a.n_se.--active)
@@ -162,8 +162,17 @@ concept is not expressed as stable semantics.
 
    The no-JS path confirms the problem. `/html/search` still has `#sidebarForm`
    and the main dropdown IDs, and it loads Custom CSS when `no_css=1` is absent,
-   but it does not expose the same active `header nav` selector. The sidebar CSS
-   therefore does not activate.
+   but it does not expose the same active `header nav` selector.
+
+   The local stylesheet now uses:
+
+   ```css
+   body:has(#sidebarForm #dd_toggle_options)
+   ```
+
+   That makes the sidebar work on both `/search` and `/html/search`, but it is
+   still a private implementation hook. A stable mode or filter contract would
+   avoid choosing between a nav class and a dropdown ID.
 
 2. Similar filter concepts use different implementation IDs.
 
@@ -299,10 +308,11 @@ experimentation:
 
 ## Expected Impact
 
-The current sidebar Custom CSS works, but its size shows the selector burden
-created by the lack of semantic hooks:
+The current sidebar Custom CSS works on both JS-enhanced and basic/no-JS web
+search, but its size shows the selector burden created by the lack of semantic
+hooks:
 
-- 17,675 bytes.
+- 18,265 bytes.
 - 474 lines.
 - 131 `:has()` uses.
 - 54 `!important` overrides.

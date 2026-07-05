@@ -7,8 +7,8 @@
  */
 
 @media (min-width: 1100px) {
-  @supports selector(body:has(header nav a.n_se.--active)) {
-    body:has(header nav a.n_se.--active) {
+  @supports selector(body:has(#sidebarForm #dd_toggle_options)) {
+    body:has(#sidebarForm #dd_toggle_options) {
       --ksb-page-max-width: 1550px;
       --ksb-sidebar-gutter: 32px;
       --ksb-sidebar-left: max(
@@ -23,13 +23,13 @@
       --ksb-border: color-mix(in srgb, var(--app-text) 16%, transparent);
     }
 
-    body:has(header nav a.n_se.--active) header.app-header,
-    body:has(header nav a.n_se.--active) .top-panel-box,
-    body:has(header nav a.n_se.--active) #_0_app_content {
+    body:has(#sidebarForm #dd_toggle_options) header.app-header,
+    body:has(#sidebarForm #dd_toggle_options) .top-panel-box,
+    body:has(#sidebarForm #dd_toggle_options) #_0_app_content {
       padding-left: var(--ksb-content-left) !important;
     }
 
-    body:has(header nav a.n_se.--active) ._0_filters-panel {
+    body:has(#sidebarForm #dd_toggle_options) ._0_filters-panel {
       position: absolute !important;
       top: var(--ksb-sidebar-top);
       left: var(--ksb-sidebar-left);
@@ -44,52 +44,52 @@
       transition: opacity 0.3s ease;
     }
 
-    body:has(header nav a.n_se.--active) ._0_filters-panel:hover,
-    body:has(header nav a.n_se.--active) ._0_filters-panel:focus-within {
+    body:has(#sidebarForm #dd_toggle_options) ._0_filters-panel:hover,
+    body:has(#sidebarForm #dd_toggle_options) ._0_filters-panel:focus-within {
       opacity: 1;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm {
       display: flex !important;
       flex-direction: column;
       width: 100%;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm::before {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm::before {
       display: none;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_options) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_options) {
       order: 1;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_dr) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_dr) {
       order: 2;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_r) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_r) {
       order: 3;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_order) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_order) {
       order: 4;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_lens) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_lens) {
       order: 5;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .filter-item:has(#menu-advanced-search-toggle) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .filter-item:has(#menu-advanced-search-toggle) {
       order: 6;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > ._0_sidebar-filter-clear {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > ._0_sidebar-filter-clear {
       order: 7;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item,
-    body:has(header nav a.n_se.--active) #sidebarForm > .filter-item,
-    body:has(header nav a.n_se.--active) #sidebarForm > ._0_sidebar-filter-clear:not([hidden]) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item,
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .filter-item,
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > ._0_sidebar-filter-clear:not([hidden]) {
       display: block !important;
       width: 100%;
       height: auto !important;
@@ -102,17 +102,17 @@
       background: transparent;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm .dd-toggle {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm .dd-toggle {
       width: 1px;
       height: 1px;
       opacity: 0;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item::before {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item::before {
       display: none;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm .dd-toggle-label {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm .dd-toggle-label {
       display: flex !important;
       align-items: center;
       gap: 6px;
@@ -130,7 +130,7 @@
       line-height: 1.25;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm .dd-toggle-label .textContent {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm .dd-toggle-label .textContent {
       flex: 1 1 auto;
       min-width: 0;
       color: var(--app-text);
@@ -138,17 +138,17 @@
       overflow-wrap: anywhere;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm .dd-toggle-label .caret {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm .dd-toggle-label .caret {
       display: block !important;
       flex: 0 0 auto;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_lens + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_order + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_r + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #menu-advanced-search-toggle,
-    body:has(header nav a.n_se.--active) #sidebarForm ._0_filters-clear-btn {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_lens + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_order + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #menu-advanced-search-toggle,
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm ._0_filters-clear-btn {
       display: flex !important;
       align-items: center;
       justify-content: space-between;
@@ -169,28 +169,28 @@
       text-decoration: none;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_lens:focus-visible + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_lens:checked + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_lens + .dd-toggle-label:hover,
-    body:has(header nav a.n_se.--active) #dd_toggle_order:focus-visible + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_order:checked + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_order + .dd-toggle-label:hover,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:focus-visible + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:checked + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr + .dd-toggle-label:hover,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:focus-visible + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:checked + .dd-toggle-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_r + .dd-toggle-label:hover,
-    body:has(header nav a.n_se.--active) #menu-advanced-search-toggle:hover,
-    body:has(header nav a.n_se.--active) #sidebarForm ._0_filters-clear-btn:hover {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_lens:focus-visible + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_lens:checked + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_lens + .dd-toggle-label:hover,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_order:focus-visible + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_order:checked + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_order + .dd-toggle-label:hover,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:focus-visible + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:checked + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr + .dd-toggle-label:hover,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:focus-visible + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:checked + .dd-toggle-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r + .dd-toggle-label:hover,
+    body:has(#sidebarForm #dd_toggle_options) #menu-advanced-search-toggle:hover,
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm ._0_filters-clear-btn:hover {
       border-color: color-mix(in srgb, var(--primary-500, var(--link)) 50%, var(--ksb-border));
       background: var(--hover-bg);
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_lens + .dd-toggle-label .textContent,
-    body:has(header nav a.n_se.--active) #dd_toggle_order + .dd-toggle-label .textContent,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr + .dd-toggle-label .textContent,
-    body:has(header nav a.n_se.--active) #dd_toggle_r + .dd-toggle-label .textContent {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_lens + .dd-toggle-label .textContent,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_order + .dd-toggle-label .textContent,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr + .dd-toggle-label .textContent,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r + .dd-toggle-label .textContent {
       flex: 1 1 auto;
       min-width: 0;
       white-space: nowrap;
@@ -198,31 +198,31 @@
       text-overflow: ellipsis;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options + .dd-toggle-label {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options + .dd-toggle-label {
       display: none !important;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_lens),
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_order),
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_dr) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_lens),
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_order),
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_dr) {
       position: relative;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_lens:checked ~ .dd-list,
-    body:has(header nav a.n_se.--active) #dd_toggle_order:checked ~ .dd-list,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:checked ~ .dd-list,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:checked ~ .dd-list {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_lens:checked ~ .dd-list,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_order:checked ~ .dd-list,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:checked ~ .dd-list,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:checked ~ .dd-list {
       top: calc(100% + 4px) !important;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> .dd-toggle:checked) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> .dd-toggle:checked) {
       position: relative;
       z-index: 60;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list ul,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list ul,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ul {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list ul,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list ul,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list ul {
       width: 100%;
       box-sizing: border-box;
       margin: 0;
@@ -230,24 +230,24 @@
       list-style: none;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_r) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .dropdown.filter-item:has(> #dd_toggle_r) {
       display: flex !important;
       flex-direction: column;
       position: relative;
       margin: 4px 0 9px;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r {
       position: absolute;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r + .dd-toggle-label {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r + .dd-toggle-label {
       order: 1;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list {
       position: static !important;
       display: block !important;
       visibility: visible !important;
@@ -265,35 +265,35 @@
       pointer-events: auto !important;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list {
       margin-top: 0;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list {
       margin-top: 2px;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list > ul > li:nth-child(n+6),
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list > ul > .no-hov-bg.sep {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list > ul > li:nth-child(n+6),
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list > ul > .no-hov-bg.sep {
       display: none !important;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list {
       order: 2;
       margin-top: 3px;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list .list_filter_wrpr,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li:not([data-recent]),
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent]:nth-of-type(n+5) {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list .list_filter_wrpr,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li:not([data-recent]),
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent]:nth-of-type(n+5) {
       display: none !important;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent][hidden]:not(:nth-of-type(n+5)) {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent][hidden]:not(:nth-of-type(n+5)) {
       display: block !important;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list {
       width: 100%;
       margin-top: 0 !important;
       padding-top: 0 !important;
@@ -301,26 +301,26 @@
       overflow: visible;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent].ul {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent].ul {
       margin-bottom: 0 !important;
       padding-bottom: 0 !important;
       border-bottom: 0 !important;
       box-shadow: none !important;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent].ul::after,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent].ul .inner-label::after {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent].ul::after,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent].ul .inner-label::after {
       display: none !important;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent].ul .inner-label {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list ._0_data_sort_list > li[data-recent].ul .inner-label {
       border-bottom: 0 !important;
       box-shadow: none !important;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list li,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list li,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list li {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list li,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list li,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list li {
       display: block;
       width: 100%;
       height: auto !important;
@@ -331,11 +331,11 @@
       list-style: none;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list .inner-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .inner-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list .inner-label,
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list button,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list button {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list .inner-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .inner-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list .inner-label,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list button,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list button {
       display: flex !important;
       align-items: center;
       width: 100% !important;
@@ -352,24 +352,24 @@
       overflow-wrap: anywhere;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list .inner-label:hover,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .inner-label:hover,
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list .inner-label:hover,
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list button:hover,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list button:hover {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list .inner-label:hover,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .inner-label:hover,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list .inner-label:hover,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list button:hover,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list button:hover {
       background: var(--hover-bg);
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list .inner-label[aria-current="true"],
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .inner-label[aria-current="true"],
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list .inner-label[aria-current="true"] {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list .inner-label[aria-current="true"],
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .inner-label[aria-current="true"],
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list .inner-label[aria-current="true"] {
       color: var(--app-text);
       background: transparent;
       box-shadow: none;
       font-weight: 700;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_r:not(:checked) ~ .dd-list .inner-label {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_r:not(:checked) ~ .dd-list .inner-label {
       display: block !important;
       padding-right: 22px !important;
       white-space: nowrap !important;
@@ -377,25 +377,25 @@
       text-overflow: ellipsis;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list .filter-checkbox,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .filter-checkbox {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list .filter-checkbox,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .filter-checkbox {
       justify-content: space-between;
       gap: 8px;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list .no-hov-bg.sep,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .no-hov-bg.sep {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list .no-hov-bg.sep,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .no-hov-bg.sep {
       height: 1px;
       margin: 7px 0;
       background: var(--ksb-border);
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_options ~ .dd-list .no-hov-bg:not(.sep),
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .no-hov-bg:not(.sep) {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_options ~ .dd-list .no-hov-bg:not(.sep),
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .no-hov-bg:not(.sep) {
       padding: 6px 0 0;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .list_filter_wrpr {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .list_filter_wrpr {
       position: relative;
       width: 100%;
       box-sizing: border-box;
@@ -403,8 +403,8 @@
       padding: 0 0 8px !important;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .list_filter,
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list input[type="date"] {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .list_filter,
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list input[type="date"] {
       width: 100% !important;
       min-width: 0;
       height: 26px;
@@ -418,7 +418,7 @@
       font-size: 12px;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .custom-date-range {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .custom-date-range {
       display: grid;
       grid-template-columns: 1fr;
       gap: 3px;
@@ -426,7 +426,7 @@
       font-size: 12px;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .custom-date-range label {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .custom-date-range label {
       margin: 0;
       color: var(--ksb-muted);
       font-size: 11px;
@@ -434,11 +434,11 @@
       line-height: 1.2;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .img-min-max-sub {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .img-min-max-sub {
       margin-top: 4px;
     }
 
-    body:has(header nav a.n_se.--active) #dd_toggle_dr:not(:checked) ~ .dd-list .btn.--primary {
+    body:has(#sidebarForm #dd_toggle_options) #dd_toggle_dr:not(:checked) ~ .dd-list .btn.--primary {
       justify-content: center;
       min-height: 28px;
       border-radius: var(--ksb-radius);
@@ -446,28 +446,28 @@
       font-weight: 650;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .filter-item {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .filter-item {
       margin-top: 2px;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .filter-item:has(> #menu-advanced-search-toggle),
-    body:has(header nav a.n_se.--active) #sidebarForm > ._0_sidebar-filter-clear:not([hidden]) {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .filter-item:has(> #menu-advanced-search-toggle),
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > ._0_sidebar-filter-clear:not([hidden]) {
       width: 100%;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm > .filter-item:has(#menu-advanced-search-toggle) .filter-item-inner {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm > .filter-item:has(#menu-advanced-search-toggle) .filter-item-inner {
       padding: 0 !important;
       width: 100%;
     }
 
-    body:has(header nav a.n_se.--active) #menu-advanced-search-toggle,
-    body:has(header nav a.n_se.--active) #sidebarForm ._0_filters-clear-btn {
+    body:has(#sidebarForm #dd_toggle_options) #menu-advanced-search-toggle,
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm ._0_filters-clear-btn {
       justify-content: center;
       width: 100% !important;
       text-align: center;
     }
 
-    body:has(header nav a.n_se.--active) #sidebarForm ._0_filters-clear-btn {
+    body:has(#sidebarForm #dd_toggle_options) #sidebarForm ._0_filters-clear-btn {
       color: var(--color-danger, var(--primary-700));
     }
   }

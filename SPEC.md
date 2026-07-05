@@ -3,8 +3,9 @@
 ## Status
 
 Current release: a CSS-only Kagi Custom CSS customization for desktop Kagi web
-search. It optimizes for day-to-day web search while keeping the design clean
-enough to share or expand later.
+search, including Kagi's JS-enhanced `/search` output and basic/no-JS
+`/html/search` output. It optimizes for day-to-day web search while keeping the
+design clean enough to share or expand later.
 
 ## References
 
@@ -63,6 +64,7 @@ and easier to inspect by moving them into a compact left sidebar.
 This release supports Kagi web search result pages:
 
 - `https://kagi.com/search?...`
+- `https://kagi.com/html/search?...`
 - Only the standard web/all search mode.
 - Logged-in pages are the primary target.
 - Logged-out pages are best effort.
@@ -203,9 +205,23 @@ Requirements:
 - Must fit within Kagi's Custom CSS character limit.
 - Must be recoverable with Kagi's `no_css` query parameter.
 - Must not require JavaScript-generated controls.
+- Must work on both `/search` and `/html/search` when Kagi exposes the same web
+  filter controls.
 - Must not style unsupported Kagi modes by accident.
 - Must not depend on text content selectors that CSS cannot express reliably.
 - Should prefer stable IDs/classes over positional selectors.
+
+Current activation gate:
+
+```css
+body:has(#sidebarForm #dd_toggle_options)
+```
+
+`#dd_toggle_options` is the web search Matching control. It appears in both
+JS-enhanced and basic/no-JS web search, while unsupported sampled modes such as
+Images expose different filter controls. This is still a private Kagi selector;
+the maintainer-facing proposal recommends replacing it with a stable
+`data-kagi-result-mode` or `data-kagi-filter` contract.
 
 Likely CSS responsibilities:
 
@@ -283,7 +299,10 @@ later:
 
 The release is acceptable when:
 
-- A normal Kagi web search shows a left sidebar on desktop-width screens.
+- A normal Kagi JS-enhanced web search shows a left sidebar on desktop-width
+  screens.
+- A normal Kagi basic/no-JS web search shows the same sidebar on desktop-width
+  screens.
 - Region, Order By, Time, Verbatim, and Clear work from the sidebar.
 - Personalized results are included if reliably available.
 - Active filter state is visible at a glance.
@@ -298,12 +317,14 @@ The release is acceptable when:
 Run the release against these scenarios:
 
 - Basic search with no active filters.
+- Basic/no-JS search with no active filters.
 - Region changed from default.
 - Order changed from default.
 - Time set to Past 24 Hours, Past Week, Past Month, and custom range.
 - Verbatim enabled and disabled.
 - Personalized results enabled and disabled, if available.
 - Clear/reset from multiple active filters.
+- Filtered basic/no-JS search with Region, Time, Matching, Sort, and Clear.
 - Light theme.
 - Dark theme.
 - Wide desktop viewport.
@@ -315,6 +336,8 @@ Run the release against these scenarios:
 
 - Kagi may change class names or toolbar markup.
 - CSS-only implementation may require brittle positional selectors.
+- The current `/html/search` gate depends on the private `#dd_toggle_options`
+  ID rather than a stable result-mode hook.
 - Moving controls may break behavior if Kagi relies on ancestor structure.
 - Some controls may be rendered only after interaction.
 - Logged-in and logged-out markup may differ.

@@ -56,10 +56,11 @@ positioning, visibility, and fixed heights, so sidebar CSS must override:
 - `overflow`
 
 Images mode also has `#sidebarForm`, but with different filter controls. Gate
-web-search-only CSS with the active All nav item:
+web-search-only CSS with the web search Matching control so both `/search` and
+`/html/search` activate:
 
 ```css
-body:has(header nav a.n_se.--active)
+body:has(#sidebarForm #dd_toggle_options)
 ```
 
 Use the release desktop breakpoint unless manual testing says otherwise:
@@ -73,7 +74,8 @@ Use the release desktop breakpoint unless manual testing says otherwise:
 The current CSS-only approach:
 
 - Uses `:has()` and therefore targets modern browsers only.
-- Applies only when the All/Web nav item is active.
+- Applies only when the web search Matching control is present, which covers
+  both JS-enhanced `/search` and basic/no-JS `/html/search`.
 - Uses `position: absolute` for `._0_filters-panel` so the sidebar scrolls
   with the page.
 - Offsets Kagi's header, top panel, and result content by changing left padding.
@@ -146,6 +148,9 @@ Useful live test states:
 - Plain web search: `/search?q=kagi+css+selectors`
 - Filtered web search:
   `/search?q=kagi+css+selectors&r=us&dr=2&verbatim=1&personalized=0&order=2&dir=desc`
+- Plain no-JS web search: `/html/search?q=kagi+css+selectors`
+- Filtered no-JS web search:
+  `/html/search?q=kagi+css+selectors&r=us&dr=2&verbatim=1&personalized=0&order=2&dir=desc`
 - Unsupported mode fallback: `/images?q=kagi+css+selectors`
 - Narrow viewport fallback: resize to about `900x900`.
 
@@ -170,6 +175,7 @@ cannot be fully simulated by browser-side injection.
 For CSS changes, check:
 
 - Web search at desktop width shows the sidebar.
+- No-JS web search at desktop width shows the sidebar.
 - Very wide desktop widths keep the sidebar close to the result column.
 - Images or another unsupported mode keeps Kagi's native horizontal toolbar.
 - Width below `1100px` keeps Kagi's native horizontal toolbar.
