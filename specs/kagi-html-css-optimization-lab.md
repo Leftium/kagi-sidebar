@@ -316,15 +316,15 @@ pickers.
 ```text
 pnpm generate
   -> writes HTML variants
-  -> writes valid HTML x CSS matrix pages
+  -> writes valid HTML x CSS matrix pages, including no-CSS baselines
   -> writes selector and measurement reports
   -> writes screenshots when browser verification runs
 
 pnpm dev
-  -> opens the Vite fixture-lab site
-  -> picker: HTML variant
-  -> picker: CSS sample
-  -> picker: CSS version
+  -> opens the Vite fixture-lab site at /
+  -> picker: capture
+  -> picker: HTML variant with size metrics
+  -> picker: CSS option with selector and size metrics
   -> link: generated artifact
   -> link: selector report
 ```
@@ -378,10 +378,11 @@ generated/
     backwards-compatible/
     optimized/
   matrix/
-    original__sidebar__original.html
-    backwards-compatible__sidebar__original.html
-    backwards-compatible__sidebar__semantic.html
-    optimized__sidebar__semantic.html
+    search__original__sidebar__original.html
+    search__backwards-compatible__sidebar__original.html
+    search__backwards-compatible__sidebar__semantic.html
+    search__optimized__sidebar__semantic.html
+    html-search__original__sidebar__original.html
   reports/
     selector-matches.json
     compatibility-summary.json
@@ -413,11 +414,14 @@ HTML changed?"
 
 For each CSS sample and HTML variant, collect:
 
+- CSS size in bytes.
+- CSS line count.
 - Total selectors.
 - Selectors that match at least one element.
 - Selectors that matched original but no longer match backwards-compatible.
 - Selectors that matched original but no longer match optimized.
 - Selectors containing private Kagi IDs/classes.
+- Distinct private Kagi IDs/classes used by those selectors.
 - Selectors containing structural dependencies such as `:nth-child`,
   `:nth-of-type`, sibling combinators, or deep SVG paths.
 - Selectors using modern features such as `:has()`.
@@ -453,7 +457,8 @@ Recommended tools:
 - Prettier for HTML and CSS normalization.
 - A Node HTML parser such as `parse5` or `cheerio` for transformations.
 - `postcss` plus `postcss-selector-parser` for selector audits.
-- Playwright for screenshot and viewport smoke checks.
+- Playwright for screenshot and viewport smoke checks when visual regressions
+  need automation.
 
 Keep the app minimal. This does not need React, Svelte, Vue, or a design system.
 The generated pages are static evidence artifacts; Vite is only the server and
@@ -464,10 +469,10 @@ Suggested scripts:
 ```json
 {
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --open /fixture-lab/site/",
+    "dev": "vite --host 127.0.0.1 --open /",
     "generate": "node fixture-lab/tools/generate-fixtures.mjs",
     "audit-css": "node fixture-lab/tools/audit-selectors.mjs",
-    "format": "prettier --write README.md package.json \"fixture-lab/README.md\" \"fixture-lab/captures/**/*.md\" \"fixture-lab/css-corpus/manifest.json\" \"fixture-lab/site/**/*.{html,css,js}\" \"fixture-lab/tools/**/*.mjs\"",
+    "format": "prettier --write README.md index.html package.json \"fixture-lab/README.md\" \"fixture-lab/captures/**/*.md\" \"fixture-lab/css-corpus/manifest.json\" \"fixture-lab/site/**/*.{html,css,js}\" \"fixture-lab/tools/**/*.mjs\"",
     "check": "pnpm generate && pnpm audit-css"
   }
 }
@@ -475,9 +480,9 @@ Suggested scripts:
 
 The Vite site should provide:
 
-- Picker for HTML variant, CSS sample, and CSS version.
+- Picker for capture, HTML variant, and CSS option.
 - Index of generated matrix pages.
-- CSS sample picker.
+- No-CSS baseline pages for each generated HTML variant.
 - Matrix table of generated combinations and compatibility status.
 - Links to selector reports.
 - Screenshot gallery.
@@ -498,52 +503,60 @@ Generated HTML should still be inspectable as static files when possible.
 | Backwards-compatible default | 1 evidence | Additive hooks only until the CSS survey proves safe simplifications | The purpose of this variant is to measure preservation, not ideal HTML |
 | First semantic CSS | 2 coherence | Rewrite `kagi-sidebar.css` first | It is the known functional Custom CSS case and the project origin |
 | CSS corpus | 1 evidence | Use public Kagi themes and gists, stored with metadata | Compatibility should be measured against real user CSS |
-| Tooling | 3 taste under constraints | Use npm/Vite with static generated artifacts | Vite improves repeatability without turning examples into an app framework |
+| Tooling | 3 taste under constraints | Use pnpm/Vite with static generated artifacts | Vite improves repeatability without turning examples into an app framework |
 | Diff strategy | 2 coherence | Normalize files and generate scoped summaries | Whole-page raw diffs are evidence, but not the main review surface |
 
 ## Implementation Plan
 
 ### Phase 1: Spec And Clean Scaffold
 
-- Add this spec.
-- Move sidebar-specific files into `sidebar/`, keeping specs under `specs/`.
-- Move proposal prose into `proposal/`.
-- Create `fixture-lab/` with source directories and a README.
-- Add root `generated/` to `.gitignore`.
-- Add `package.json` with pnpm scripts after confirming the tooling shape.
-- Keep stashed generated artifacts as reference, not as source to restore.
+- [x] Add this spec.
+- [x] Move sidebar-specific files into `sidebar/`, keeping specs under `specs/`.
+- [x] Move proposal prose into `proposal/`.
+- [x] Create `fixture-lab/` with source directories and a README.
+- [x] Add root `generated/` to `.gitignore`.
+- [x] Add `package.json` with pnpm scripts after confirming the tooling shape.
+- [x] Keep stashed generated artifacts as reference, not as source to restore.
 
 ### Phase 2: CSS Corpus Survey
 
-- Collect public CSS samples into `fixture-lab/css-corpus/original/`.
-- Record metadata in `fixture-lab/css-corpus/manifest.json`.
-- Preserve source URLs and retrieval dates.
-- Run a selector audit against current captured Kagi pages.
-- Produce `compatibility-summary.json`.
+- [x] Seed `fixture-lab/css-corpus/original/` with the sidebar CSS sample.
+- [x] Record sidebar metadata in `fixture-lab/css-corpus/manifest.json`.
+- [x] Run a selector audit against current captured Kagi pages.
+- [x] Produce `compatibility-summary.json`.
+- [ ] Collect public CSS samples into `fixture-lab/css-corpus/original/`.
+- [ ] Preserve source URLs and retrieval dates for public samples.
 
 ### Phase 3: HTML Variant Generator
 
-- Capture or restore current Kagi `/search` and `/html/search` HTML as
+- [x] Capture current Kagi `/search` and `/html/search` HTML as
   `original`.
-- Generate normalized `original` inspection pages.
-- Generate `backwards-compatible` pages by adding semantic hooks only.
-- Generate `optimized` pages with breaking simplifications, starting with the
+- [x] Generate `original` inspection pages.
+- [x] Generate `backwards-compatible` pages by adding semantic hooks only.
+- [ ] Generate normalized diff-friendly copies.
+- [ ] Generate `optimized` pages with breaking simplifications, starting with the
   filter shell and Region selector.
 
 ### Phase 4: CSS Injection Matrix
 
-- Generate matrix pages for HTML variant x CSS sample.
-- Start with sidebar across all three variants.
-- Add original public themes across original and backwards-compatible.
-- Add optimized semantic examples only when useful.
-- Build a Vite picker/index over the generated matrix pages.
+- [x] Generate matrix pages for capture x HTML variant x CSS sample.
+- [x] Start with sidebar original CSS across original and backwards-compatible
+  variants.
+- [x] Include no-CSS baseline pages for each generated HTML variant.
+- [x] Build a Vite picker/index over the generated matrix pages.
+- [ ] Add original public themes across original and backwards-compatible.
+- [ ] Add optimized semantic examples only when useful.
 
 ### Phase 5: Visual And Selector Verification
 
-- Add selector-match reports.
-- Add Playwright smoke checks for desktop and narrow widths.
-- Add screenshots for the sidebar matrix.
-- Fail checks on backwards-compatible selector regressions unless waived.
+- [x] Add selector-match reports.
+- [x] Report backwards-compatible selector regressions.
+- [ ] Decide whether screenshot automation is worth maintaining.
+- [ ] Add Playwright smoke checks for desktop and narrow widths only if the
+  screenshot path earns its cost.
+- [ ] Add screenshots for the sidebar matrix only if they become review
+  evidence, not just generated noise.
+- [ ] Fail checks on backwards-compatible selector regressions unless waived.
 
 ### Phase 6: Proposal Rewrite
 
@@ -595,8 +608,10 @@ The new fixture system is working when:
 
 4. Should Playwright be required for every contributor?
 
-   Recommendation: make screenshots part of `check`, but keep `generate` and
-   `audit-css` usable without a browser.
+   Recommendation: no, not yet. Keep `pnpm check` browser-free while the lab is
+   proving the capture, generation, and selector-report shape. Add a separate
+   visual command only if screenshots catch issues that selector reports and
+   manual review miss.
 
 5. Should optimized HTML remove all private classes?
 

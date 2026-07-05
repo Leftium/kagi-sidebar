@@ -5,10 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --open /fixture-lab/site/",
+    "dev": "vite --host 127.0.0.1 --open /",
     "generate": "node fixture-lab/tools/generate-fixtures.mjs",
     "audit-css": "node fixture-lab/tools/audit-selectors.mjs",
-    "format": "prettier --write README.md package.json \"fixture-lab/README.md\" \"fixture-lab/captures/**/*.md\" \"fixture-lab/css-corpus/manifest.json\" \"fixture-lab/site/**/*.{html,css,js}\" \"fixture-lab/tools/**/*.mjs\"",
+    "format": "prettier --write README.md index.html package.json \"fixture-lab/README.md\" \"fixture-lab/captures/**/*.md\" \"fixture-lab/css-corpus/manifest.json\" \"fixture-lab/site/**/*.{html,css,js}\" \"fixture-lab/tools/**/*.mjs\"",
     "check": "pnpm generate && pnpm audit-css"
   },
   "devDependencies": {

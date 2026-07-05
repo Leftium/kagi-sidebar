@@ -15,3 +15,10 @@ The first expected files are:
 original/search.html
 original/html-search.html
 ```
+
+Current captures:
+
+- `original/search.html` is the settled JS-enhanced `/search` DOM for a neutral
+  `kagi css selectors` query.
+- `original/html-search.html` is the basic `/html/search` DOM for the same
+  query.
