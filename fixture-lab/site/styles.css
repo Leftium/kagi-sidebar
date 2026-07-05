@@ -202,6 +202,10 @@ th {
   margin-bottom: 30px;
 }
 
+.comparison-section {
+  margin-bottom: 30px;
+}
+
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -278,6 +282,81 @@ th {
 .choice-meta {
   display: grid;
   gap: 6px;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.html-comparison-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.comparison-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  padding: 14px;
+}
+
+.card-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.link-list,
+.version-matches {
+  display: grid;
+  gap: 8px;
+}
+
+.link-chip {
+  display: grid;
+  grid-template-columns: minmax(90px, auto) minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-soft);
+  padding: 8px 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.link-chip:hover {
+  border-color: var(--border-strong);
+}
+
+.link-chip span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.link-chip strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-inline {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .metric-row {
@@ -377,6 +456,10 @@ tbody tr:last-child td {
   }
 
   .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .html-comparison-grid {
     grid-template-columns: 1fr;
   }
 

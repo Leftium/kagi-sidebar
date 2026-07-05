@@ -66,8 +66,8 @@
       <section class="control-panel" aria-label="Matrix controls">
         <div class="section-heading">
           <h2>Compare</h2>
-          <a id="matrix-link" class="button" href="/generated/matrix/">
-            Open selected page
+          <a class="button" href="/generated/matrix/manifest.json">
+            Open matrix manifest
           </a>
         </div>
 
@@ -80,17 +80,24 @@
 
         <div class="control-group">
           <div class="control-copy">
-            <h3>HTML variant</h3>
+            <h3>Custom CSS</h3>
           </div>
-          <div id="html-options" class="choice-grid"></div>
+          <div id="css-sample-options" class="choice-grid"></div>
         </div>
+      </section>
 
-        <div class="control-group">
-          <div class="control-copy">
-            <h3>CSS option</h3>
-          </div>
-          <div id="css-options" class="choice-grid"></div>
+      <section class="comparison-section" aria-label="HTML variant comparison">
+        <div class="section-heading">
+          <h2>HTML variants</h2>
         </div>
+        <div id="html-comparison" class="comparison-grid"></div>
+      </section>
+
+      <section class="comparison-section" aria-label="CSS version comparison">
+        <div class="section-heading">
+          <h2>CSS versions</h2>
+        </div>
+        <div id="css-version-comparison" class="comparison-grid"></div>
       </section>
 
       <section>

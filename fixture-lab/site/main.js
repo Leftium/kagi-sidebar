@@ -1,25 +1,27 @@
 const controls = {
   captureOptions: document.querySelector("#capture-options"),
-  htmlOptions: document.querySelector("#html-options"),
-  cssOptions: document.querySelector("#css-options"),
-  matrixLink: document.querySelector("#matrix-link"),
+  cssSampleOptions: document.querySelector("#css-sample-options"),
+  htmlComparison: document.querySelector("#html-comparison"),
+  cssVersionComparison: document.querySelector("#css-version-comparison"),
   summaryCards: document.querySelector("#summary-cards"),
   matrixRows: document.querySelector("#matrix-rows"),
 };
 
 const preferredSelection = {
   captureId: "search",
-  htmlVariant: "original",
   cssSample: "sidebar",
-  cssVersion: "original",
 };
 
 let generationSummary = null;
 let compatibilitySummary = null;
 let selectorInventory = { samples: [] };
+let selectorMatches = { matches: [] };
 let matrixManifest = {
   captures: [],
   combinations: [],
+  cssOptions: [],
+  cssSamples: [],
+  htmlVariants: [],
 };
 let state = { ...preferredSelection };
 
@@ -35,76 +37,31 @@ function uniqueValues(items, getValue) {
   return [...new Set(items.map(getValue))];
 }
 
-function cssKey(sample, version) {
-  return `${sample}::${version}`;
-}
-
-function parseCssKey(value) {
-  const [sample, version] = value.split("::");
-
-  return { sample, version };
-}
-
 function currentCombinations() {
   return matrixManifest.combinations ?? [];
 }
 
-function selectedCombination() {
-  return currentCombinations().find(
-    (item) =>
-      item.captureId === state.captureId &&
-      item.htmlVariant === state.htmlVariant &&
-      item.cssSample === state.cssSample &&
-      item.cssVersion === state.cssVersion,
-  );
-}
-
-function applyCombination(combination) {
-  if (!combination) {
-    return;
-  }
-
-  state = {
-    captureId: combination.captureId,
-    htmlVariant: combination.htmlVariant,
-    cssSample: combination.cssSample,
-    cssVersion: combination.cssVersion,
-  };
-}
-
-function preferredCombination(combinations) {
-  return (
-    combinations.find(
-      (item) =>
-        item.captureId === preferredSelection.captureId &&
-        item.htmlVariant === preferredSelection.htmlVariant &&
-        item.cssSample === preferredSelection.cssSample &&
-        item.cssVersion === preferredSelection.cssVersion,
-    ) ??
-    combinations.find(
-      (item) =>
-        item.htmlVariant === preferredSelection.htmlVariant &&
-        item.cssSample === preferredSelection.cssSample &&
-        item.cssVersion === preferredSelection.cssVersion,
-    ) ??
-    combinations.find((item) => item.cssSample !== "none") ??
-    combinations[0]
-  );
+function cssOptions() {
+  return matrixManifest.cssOptions ?? [];
 }
 
 function ensureValidState() {
-  const combinations = currentCombinations();
+  const captures = captureOptions();
+  const samples = cssSampleOptions();
 
-  if (!combinations.length) {
-    return;
+  if (!captures.some((item) => item.id === state.captureId)) {
+    state.captureId =
+      captures.find((item) => item.id === preferredSelection.captureId)?.id ??
+      captures[0]?.id ??
+      preferredSelection.captureId;
   }
 
-  if (!selectedCombination()) {
-    applyCombination(
-      preferredCombination(
-        combinations.filter((item) => item.captureId === state.captureId),
-      ) ?? preferredCombination(combinations),
-    );
+  if (!samples.some((item) => item.id === state.cssSample)) {
+    state.cssSample =
+      samples.find((item) => item.id === preferredSelection.cssSample)?.id ??
+      samples.find((item) => item.id !== "none")?.id ??
+      samples[0]?.id ??
+      preferredSelection.cssSample;
   }
 }
 
@@ -146,14 +103,34 @@ function htmlVariantLabel(value) {
   return humanize(value);
 }
 
-function cssOptionLabel(option) {
-  if (option.cssSample === "none") {
+function cssSampleLabel(sample) {
+  if (sample.id === "none") {
     return "No CSS";
   }
 
-  const sampleName = option.cssSampleName || humanize(option.cssSample);
+  return sample.name || humanize(sample.id);
+}
 
-  return `${sampleName} ${humanize(option.cssVersion).toLowerCase()}`;
+function cssVersionLabel(version) {
+  const cssVersion = version.cssVersion ?? version.version;
+
+  if (version.cssSample === "none") {
+    return "No CSS baseline";
+  }
+
+  return humanize(cssVersion);
+}
+
+function cssCombinationLabel(option) {
+  if (option.cssSample === "none") {
+    return "No CSS baseline";
+  }
+
+  const sampleName =
+    cssOptions().find((item) => item.sampleId === option.cssSample)
+      ?.sampleName ?? humanize(option.cssSample);
+
+  return `${sampleName} ${cssVersionLabel(option)}`;
 }
 
 function formatBytes(bytes) {
@@ -211,8 +188,9 @@ function renderChoiceGroup({
     return;
   }
 
+  target.className = options.length < 3 ? "choice-grid" : "select-row";
+
   if (options.length < 3) {
-    target.className = "choice-grid";
     target.innerHTML = options
       .map((option) => {
         const value = valueFor(option);
@@ -232,7 +210,6 @@ function renderChoiceGroup({
     return;
   }
 
-  target.className = "select-row";
   target.innerHTML = `<select aria-label="${escapeHtml(name)}">
     ${options
       .map((option) => {
@@ -263,34 +240,44 @@ function captureOptions() {
   );
 }
 
-function htmlOptions() {
-  return uniqueValues(
-    currentCombinations().filter((item) => item.captureId === state.captureId),
-    (item) => item.htmlVariant,
-  ).map((htmlVariant) => ({ htmlVariant }));
-}
+function cssSampleOptions() {
+  const samples = new Map();
 
-function cssOptions() {
-  const unique = new Map();
-
-  for (const combination of currentCombinations()) {
-    if (
-      combination.captureId !== state.captureId ||
-      combination.htmlVariant !== state.htmlVariant
-    ) {
-      continue;
-    }
-
-    unique.set(cssKey(combination.cssSample, combination.cssVersion), {
-      cssSample: combination.cssSample,
-      cssSampleName: combination.cssSampleName,
-      cssVersion: combination.cssVersion,
-      cssPath: combination.cssPath,
-      cssBuiltIn: combination.cssBuiltIn,
+  for (const option of cssOptions()) {
+    samples.set(option.sampleId, {
+      id: option.sampleId,
+      name: option.sampleName,
+      builtIn: option.builtIn,
+      versions: cssOptionsForSample(option.sampleId),
     });
   }
 
-  return [...unique.values()];
+  return [...samples.values()].sort((a, b) => {
+    if (a.id === "none") {
+      return -1;
+    }
+
+    if (b.id === "none") {
+      return 1;
+    }
+
+    return cssSampleLabel(a).localeCompare(cssSampleLabel(b));
+  });
+}
+
+function htmlVariants() {
+  return matrixManifest.htmlVariants?.length
+    ? matrixManifest.htmlVariants
+    : uniqueValues(
+        currentCombinations().filter(
+          (item) => item.captureId === state.captureId,
+        ),
+        (item) => item.htmlVariant,
+      );
+}
+
+function cssOptionsForSample(cssSample) {
+  return cssOptions().filter((item) => item.sampleId === cssSample);
 }
 
 function htmlMetric(captureId, htmlVariant) {
@@ -314,6 +301,37 @@ function cssMetric(cssSample, cssVersion) {
 
   return (selectorInventory.samples ?? []).find(
     (item) => item.sampleId === cssSample && item.version === cssVersion,
+  );
+}
+
+function selectorMatch(captureId, htmlVariant, cssSample, cssVersion) {
+  return (selectorMatches.matches ?? []).find(
+    (item) =>
+      item.captureId === captureId &&
+      item.htmlVariant === htmlVariant &&
+      item.sampleId === cssSample &&
+      item.cssVersion === cssVersion,
+  );
+}
+
+function selectorMatchText(captureId, htmlVariant, cssSample, cssVersion) {
+  if (cssSample === "none") {
+    return "Baseline";
+  }
+
+  const match = selectorMatch(captureId, htmlVariant, cssSample, cssVersion);
+
+  return match
+    ? `${match.matchedSelectorCount}/${match.selectorCount} matched`
+    : "No selector report";
+}
+
+function matrixCombinationsForHtmlVariant(htmlVariant) {
+  return currentCombinations().filter(
+    (item) =>
+      item.captureId === state.captureId &&
+      item.htmlVariant === htmlVariant &&
+      item.cssSample === state.cssSample,
   );
 }
 
@@ -389,123 +407,164 @@ function renderCaptureOptions() {
       ].join(""),
     onChange: (value) => {
       state.captureId = value;
-      applyCombination(
-        preferredCombination(
-          currentCombinations().filter((item) => item.captureId === value),
-        ),
-      );
       render();
     },
   });
 }
 
-function renderHtmlOptions() {
+function renderCssSampleOptions() {
+  renderChoiceGroup({
+    target: controls.cssSampleOptions,
+    name: "custom CSS",
+    options: cssSampleOptions(),
+    selectedValue: state.cssSample,
+    valueFor: (option) => option.id,
+    labelFor: cssSampleLabel,
+    metaFor: (option) =>
+      [
+        statRow("Versions", String(option.versions.length)),
+        statRow(
+          "Pages",
+          String(
+            currentCombinations().filter(
+              (item) =>
+                item.captureId === state.captureId &&
+                item.cssSample === option.id,
+            ).length,
+          ),
+        ),
+      ].join(""),
+    onChange: (value) => {
+      state.cssSample = value;
+      render();
+    },
+  });
+}
+
+function renderHtmlComparison() {
+  const variants = htmlVariants();
   const originalBytes = selectedCaptureOriginalBytes();
 
-  renderChoiceGroup({
-    target: controls.htmlOptions,
-    name: "html variant",
-    options: htmlOptions(),
-    selectedValue: state.htmlVariant,
-    valueFor: (option) => option.htmlVariant,
-    labelFor: (option) => htmlVariantLabel(option.htmlVariant),
-    metaFor: (option) => {
-      const metric = htmlMetric(state.captureId, option.htmlVariant);
+  if (!variants.length) {
+    renderEmpty(controls.htmlComparison, "Run pnpm generate.");
+    return;
+  }
+
+  controls.htmlComparison.className = "comparison-grid html-comparison-grid";
+  controls.htmlComparison.innerHTML = variants
+    .map((htmlVariant) => {
+      const metric = htmlMetric(state.captureId, htmlVariant);
       const delta =
         metric?.bytes == null || originalBytes == null
           ? "Pending"
           : formatDelta(metric.bytes - originalBytes);
+      const combinations = matrixCombinationsForHtmlVariant(htmlVariant);
 
-      return [
-        statRow("Size", formatBytes(metric?.bytes)),
-        statRow("Delta", delta),
-        statRow("File", metric?.path ?? "Pending"),
-      ].join("");
-    },
-    onChange: (value) => {
-      state.htmlVariant = value;
-
-      if (!selectedCombination()) {
-        applyCombination(
-          preferredCombination(
-            currentCombinations().filter(
-              (item) =>
-                item.captureId === state.captureId &&
-                item.htmlVariant === value,
-            ),
-          ),
-        );
-      }
-
-      render();
-    },
-  });
+      return `<article class="comparison-card">
+        <div class="card-heading">
+          <h3>${escapeHtml(htmlVariantLabel(htmlVariant))}</h3>
+        </div>
+        <div class="choice-meta">
+          ${statRow("Size", formatBytes(metric?.bytes))}
+          ${statRow("Delta", delta)}
+          ${statRow("Source", metric?.path ?? "Pending")}
+        </div>
+        ${renderHtmlVariantLinkList(combinations, "No generated pages for selected CSS.")}
+      </article>`;
+    })
+    .join("");
 }
 
-function renderCssOptions() {
-  renderChoiceGroup({
-    target: controls.cssOptions,
-    name: "css option",
-    options: cssOptions(),
-    selectedValue: cssKey(state.cssSample, state.cssVersion),
-    valueFor: (option) => cssKey(option.cssSample, option.cssVersion),
-    labelFor: cssOptionLabel,
-    metaFor: (option) => {
-      const metric = cssMetric(option.cssSample, option.cssVersion);
+function renderCssVersionComparison() {
+  const versions = cssOptionsForSample(state.cssSample);
 
-      return [
-        statRow("Size", formatBytes(metric?.bytes)),
-        statRow("Lines", String(metric?.lineCount ?? 0)),
-        statRow("Selectors", String(metric?.selectorCount ?? 0)),
-        statRow("Kagi hooks", String(metric?.privateSelectorTokenCount ?? 0)),
-        statRow("Private entries", String(metric?.privateSelectorCount ?? 0)),
-        statRow("Structural", String(metric?.structuralSelectorCount ?? 0)),
-        statRow(":has()", String(metric?.modernSelectorCount ?? 0)),
-      ].join("");
-    },
-    onChange: (value) => {
-      const parsed = parseCssKey(value);
+  if (!versions.length) {
+    renderEmpty(controls.cssVersionComparison, "Select a Custom CSS sample.");
+    return;
+  }
 
-      state.cssSample = parsed.sample;
-      state.cssVersion = parsed.version;
+  controls.cssVersionComparison.className = "comparison-grid";
+  controls.cssVersionComparison.innerHTML = versions
+    .map((version) => {
+      const metric = cssMetric(version.sampleId, version.version);
+      const combinations = currentCombinations().filter(
+        (item) =>
+          item.captureId === state.captureId &&
+          item.cssSample === version.sampleId &&
+          item.cssVersion === version.version,
+      );
 
-      if (!selectedCombination()) {
-        applyCombination(
-          preferredCombination(
-            currentCombinations().filter(
-              (item) =>
-                item.captureId === state.captureId &&
-                item.cssSample === parsed.sample &&
-                item.cssVersion === parsed.version,
-            ),
-          ),
+      return `<article class="comparison-card">
+        <div class="card-heading">
+          <h3>${escapeHtml(cssVersionLabel(version))}</h3>
+        </div>
+        <div class="choice-meta">
+          ${statRow("Size", formatBytes(metric?.bytes))}
+          ${statRow("Lines", String(metric?.lineCount ?? 0))}
+          ${statRow("Selectors", String(metric?.selectorCount ?? 0))}
+          ${statRow("Kagi hooks", String(metric?.privateSelectorTokenCount ?? 0))}
+          ${statRow("Private entries", String(metric?.privateSelectorCount ?? 0))}
+          ${statRow("Structural", String(metric?.structuralSelectorCount ?? 0))}
+          ${statRow(":has()", String(metric?.modernSelectorCount ?? 0))}
+        </div>
+        ${renderVersionMatchList(version, combinations)}
+      </article>`;
+    })
+    .join("");
+}
+
+function renderVersionMatchList(version, combinations) {
+  if (!combinations.length) {
+    return `<p class="empty-inline">No generated pages for this version.</p>`;
+  }
+
+  return `<div class="version-matches">
+    ${combinations
+      .map((combination) => {
+        const text = selectorMatchText(
+          combination.captureId,
+          combination.htmlVariant,
+          version.sampleId,
+          version.version,
         );
-      }
 
-      render();
-    },
-  });
+        return `<a class="link-chip" href="/${escapeHtml(combination.matrixPath)}">
+          <span>${escapeHtml(htmlVariantLabel(combination.htmlVariant))}</span>
+          <strong>${escapeHtml(text)}</strong>
+        </a>`;
+      })
+      .join("")}
+  </div>`;
+}
+
+function renderHtmlVariantLinkList(combinations, emptyMessage) {
+  if (!combinations.length) {
+    return `<p class="empty-inline">${escapeHtml(emptyMessage)}</p>`;
+  }
+
+  return `<div class="link-list">
+    ${combinations
+      .map((combination) => {
+        const text = selectorMatchText(
+          combination.captureId,
+          combination.htmlVariant,
+          combination.cssSample,
+          combination.cssVersion,
+        );
+
+        return `<a class="link-chip" href="/${escapeHtml(combination.matrixPath)}" title="${escapeHtml(combination.matrixFileName)}">
+          <span>${escapeHtml(cssVersionLabel(combination))}</span>
+          <strong>${escapeHtml(text)}</strong>
+        </a>`;
+      })
+      .join("")}
+  </div>`;
 }
 
 function capturePageCount(captureId) {
   return String(
     currentCombinations().filter((item) => item.captureId === captureId).length,
   );
-}
-
-function updateMatrixLink() {
-  const combination = selectedCombination();
-
-  if (!combination) {
-    controls.matrixLink.removeAttribute("href");
-    controls.matrixLink.setAttribute("aria-disabled", "true");
-    controls.matrixLink.textContent = "No matrix page";
-    return;
-  }
-
-  controls.matrixLink.href = `/${combination.matrixPath}`;
-  controls.matrixLink.removeAttribute("aria-disabled");
-  controls.matrixLink.textContent = "Open selected page";
 }
 
 function renderMatrixRows(combinations) {
@@ -520,7 +579,7 @@ function renderMatrixRows(combinations) {
       (item) => `<tr>
         <td>${escapeHtml(humanize(item.captureId))}</td>
         <td>${escapeHtml(htmlVariantLabel(item.htmlVariant))}</td>
-        <td>${escapeHtml(cssOptionLabel(item))}</td>
+        <td>${escapeHtml(cssCombinationLabel(item))}</td>
         <td>${escapeHtml(item.matrixFileName)}</td>
         <td><a href="/${escapeHtml(item.matrixPath)}">Open</a></td>
       </tr>`,
@@ -532,32 +591,40 @@ function render() {
   ensureValidState();
   renderSummaryCards();
   renderCaptureOptions();
-  renderHtmlOptions();
-  renderCssOptions();
-  updateMatrixLink();
+  renderCssSampleOptions();
+  renderHtmlComparison();
+  renderCssVersionComparison();
   renderMatrixRows(currentCombinations());
 }
 
 async function loadReports() {
-  const [generation, compatibility, inventory, manifest] = await Promise.all([
-    fetchJson("/generated/reports/generation-summary.json").catch(() => null),
-    fetchJson("/generated/reports/compatibility-summary.json").catch(
-      () => null,
-    ),
-    fetchJson("/generated/reports/selector-inventory.json").catch(() => ({
-      samples: [],
-    })),
-    fetchJson("/generated/matrix/manifest.json").catch(() => ({
-      captures: [],
-      combinations: [],
-    })),
-  ]);
+  const [generation, compatibility, inventory, matches, manifest] =
+    await Promise.all([
+      fetchJson("/generated/reports/generation-summary.json").catch(() => null),
+      fetchJson("/generated/reports/compatibility-summary.json").catch(
+        () => null,
+      ),
+      fetchJson("/generated/reports/selector-inventory.json").catch(() => ({
+        samples: [],
+      })),
+      fetchJson("/generated/reports/selector-matches.json").catch(() => ({
+        matches: [],
+      })),
+      fetchJson("/generated/matrix/manifest.json").catch(() => ({
+        captures: [],
+        combinations: [],
+        cssOptions: [],
+        cssSamples: [],
+        htmlVariants: [],
+      })),
+    ]);
 
   generationSummary = generation;
   compatibilitySummary = compatibility;
   selectorInventory = inventory;
+  selectorMatches = matches;
   matrixManifest = manifest;
-  applyCombination(preferredCombination(currentCombinations()));
+  ensureValidState();
   render();
 }
 
