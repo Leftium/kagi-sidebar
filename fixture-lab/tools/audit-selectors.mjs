@@ -57,6 +57,54 @@ function splitSelectors(selectorText) {
   return selectors;
 }
 
+function closestParentRule(rule) {
+  let parent = rule.parent;
+
+  while (parent) {
+    if (parent.type === "rule") {
+      return parent;
+    }
+
+    parent = parent.parent;
+  }
+
+  return null;
+}
+
+function combineNestedSelector(parentSelector, childSelector) {
+  if (childSelector.includes("&")) {
+    return childSelector.replaceAll("&", parentSelector);
+  }
+
+  return `${parentSelector} ${childSelector}`;
+}
+
+function resolvedSelectorsForRule(rule, cache = new WeakMap()) {
+  const cached = cache.get(rule);
+
+  if (cached) {
+    return cached;
+  }
+
+  const selectors = splitSelectors(rule.selector);
+  const parentRule = closestParentRule(rule);
+
+  if (!parentRule) {
+    cache.set(rule, selectors);
+    return selectors;
+  }
+
+  const parentSelectors = resolvedSelectorsForRule(parentRule, cache);
+  const resolvedSelectors = parentSelectors.flatMap((parentSelector) =>
+    selectors.map((selector) =>
+      combineNestedSelector(parentSelector, selector),
+    ),
+  );
+
+  cache.set(rule, resolvedSelectors);
+  return resolvedSelectors;
+}
+
 function classifySelector(selector) {
   return {
     selector,
@@ -99,6 +147,7 @@ function auditCss(css, from) {
   const selectors = [];
   let declarationCount = 0;
   let tokenDeclarationCount = 0;
+  const selectorCache = new WeakMap();
 
   root.walkRules((rule) => {
     if (
@@ -108,11 +157,16 @@ function auditCss(css, from) {
       return;
     }
 
-    for (const selector of splitSelectors(rule.selector)) {
+    for (const selector of resolvedSelectorsForRule(rule, selectorCache)) {
       selectors.push(classifySelector(selector));
     }
 
-    rule.walkDecls((declaration) => {
+    rule.each((node) => {
+      if (node.type !== "decl") {
+        return;
+      }
+
+      const declaration = node;
       declarationCount += 1;
 
       if (
