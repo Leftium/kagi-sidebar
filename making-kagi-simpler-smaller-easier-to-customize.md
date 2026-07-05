@@ -279,6 +279,51 @@ Where no-JS behavior matters, standard GET forms should be the baseline and JS
 should enhance them. This keeps behavior inspectable, reduces repeated URLs, and
 lets `/search` and `/html/search` share the same semantic contract.
 
+## High-Impact Transformations
+
+The Region filter is the clearest measured example, but it points to a broader
+pattern worth testing.
+
+1. Use one GET form for single-choice filter lists.
+
+   Today the no-JS Region dropdown repeats a full search URL for every region.
+   A single form can keep the query and current filter state once, then submit
+   each choice as a named button:
+
+   ```html
+   <form action="/html/search" method="get" data-kagi-filter-form>
+     <input type="hidden" name="q" value="kagi css selectors">
+     <button type="submit" name="r" value="us">United States (US)</button>
+     <button type="submit" name="r" value="gb">United Kingdom (GB)</button>
+   </form>
+   ```
+
+   This preserves no-JS behavior and can preserve Kagi's current list-like UI.
+   The sampled Region list drops from about 42 KB to about 17 KB with this
+   shape. A native `<select name="r">` is smaller still, but it is a larger UI
+   change. The same form-control pattern should be measured for Time, Order,
+   Matching, Lens, freshness, image filters, and video filters.
+
+2. Generate JS-enhanced and no-JS search from the same semantic shell.
+
+   The sampled `/html/search` response is about 35 KB larger than `/search` and
+   carries many more IDs and class tokens. Some of that difference may be
+   necessary, but the two outputs should not need different public hooks or
+   parallel filter semantics. A shared form-first component, enhanced by JS on
+   `/search`, would make the HTML easier to read and reduce selector drift.
+
+3. Collapse mode-specific result and widget wrappers behind stable product
+   hooks.
+
+   The appendix shows the same product concepts exposed through different
+   private selectors across web results, grouped results, news, videos,
+   podcasts, widgets, and quick actions. A common result shell such as
+   `data-kagi-result`, `data-kagi-result-type`, `data-kagi-widget`, and
+   `data-kagi-action` would not automatically make every page smaller, but it
+   should make Kagi CSS and Custom CSS shorter and more readable. This is a good
+   second POC after the filter shell because it has broad community-theme
+   evidence but still needs byte measurements.
+
 ## Layout Variables
 
 Expose variables for page-level layout slots:
