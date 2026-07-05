@@ -1,0 +1,607 @@
+/*
+ * Semantic Kagi Sidebar fixture stylesheet.
+ *
+ * This targets the proposed data-kagi-* hooks instead of private Kagi IDs.
+ */
+
+@media (min-width: 1100px) {
+  @supports selector(
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+  ) {
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"]) {
+      --ksb-page-max-width: 1550px;
+      --ksb-sidebar-gutter: 32px;
+      --ksb-sidebar-left: max(
+        var(--ksb-sidebar-gutter),
+        calc((100% - var(--ksb-page-max-width)) / 2 + var(--ksb-sidebar-gutter))
+      );
+      --ksb-sidebar-top: 88px;
+      --ksb-sidebar-width: 168px;
+      --ksb-content-left: 214px;
+      --ksb-radius: 6px;
+      --ksb-muted: color-mix(in srgb, var(--app-text) 62%, transparent);
+      --ksb-border: color-mix(in srgb, var(--app-text) 16%, transparent);
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-app-header],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-top-panel],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-result-page] {
+      padding-left: var(--ksb-content-left) !important;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-panel] {
+      position: absolute !important;
+      top: var(--ksb-sidebar-top);
+      left: var(--ksb-sidebar-left);
+      z-index: 45;
+      width: var(--ksb-sidebar-width);
+      height: auto;
+      max-height: none;
+      overflow: visible;
+      padding: 0 8px 0 0;
+      background: transparent;
+      opacity: 0.22;
+      transition: opacity 0.3s ease;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-panel]:hover,
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-panel]:focus-within {
+      opacity: 1;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-search-filters] {
+      display: flex !important;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-search-filters]::before {
+      display: none;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="matching"] {
+      order: 1;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"] {
+      order: 2;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"] {
+      order: 3;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="sort"] {
+      order: 4;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="lens"] {
+      order: 5;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-action="advanced-search"] {
+      order: 6;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-action="clear-filters"] {
+      order: 7;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-search-filters]
+      > [data-kagi-filter],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-search-filters]
+      > [data-kagi-filter-action]:not([hidden]) {
+      display: block !important;
+      width: 100%;
+      height: auto !important;
+      min-height: 0;
+      box-sizing: border-box;
+      margin: 0 0 7px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-toggle] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter]::before {
+      display: none;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-trigger] {
+      display: flex !important;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      min-height: 28px;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 4px 7px;
+      border: 0;
+      border-radius: var(--ksb-radius);
+      background: transparent;
+      color: var(--app-text);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      summary[data-kagi-filter-trigger] {
+      list-style: none;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      summary[data-kagi-filter-trigger]::-webkit-details-marker {
+      display: none;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-trigger]
+      .textContent,
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-label] {
+      flex: 1 1 auto;
+      min-width: 0;
+      color: var(--app-text);
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-trigger]
+      .caret,
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-caret] {
+      display: block !important;
+      flex: 0 0 auto;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="lens"]
+      [data-kagi-filter-trigger],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="sort"]
+      [data-kagi-filter-trigger],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]
+      [data-kagi-filter-trigger],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"]
+      [data-kagi-filter-trigger],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-action] {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      width: 100% !important;
+      min-height: 30px;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 5px 10px;
+      border: 1px solid var(--ksb-border);
+      border-radius: 999px;
+      background: var(--input-bg, var(--app-bg));
+      color: var(--app-text);
+      box-shadow: 0 1px 2px color-mix(in srgb, black 8%, transparent);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.25;
+      text-decoration: none;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter]:has(> [data-kagi-filter-toggle]:focus-visible)
+      [data-kagi-filter-trigger],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter]:has(> [data-kagi-filter-toggle]:checked)
+      [data-kagi-filter-trigger],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-menu][open]
+      > [data-kagi-filter-trigger],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-trigger]:hover,
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-action]:hover {
+      border-color: color-mix(
+        in srgb,
+        var(--primary-500, var(--link)) 50%,
+        var(--ksb-border)
+      );
+      background: var(--hover-bg);
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="matching"]
+      > [data-kagi-filter-trigger] {
+      display: none !important;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="lens"],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="sort"],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"] {
+      position: relative;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter]:has(> [data-kagi-filter-toggle]:checked) {
+      position: relative;
+      z-index: 60;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter]:has(> [data-kagi-filter-toggle]:checked)
+      > [data-kagi-filter-options] {
+      top: calc(100% + 4px) !important;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-options]
+      ul {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="matching"]
+      > [data-kagi-filter-options],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      > [data-kagi-filter-options],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"]:has(> [data-kagi-filter-toggle]):not(
+        :has(> [data-kagi-filter-toggle]:checked)
+      )
+      > [data-kagi-filter-options],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-preview] {
+      position: static !important;
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      height: auto !important;
+      max-height: none !important;
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+      pointer-events: auto !important;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="matching"]
+      > [data-kagi-filter-options] {
+      margin-top: 0;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      > [data-kagi-filter-options] {
+      margin-top: 2px;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      > [data-kagi-filter-options]
+      > ul
+      > li:nth-child(n + 6),
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="matching"]
+      > [data-kagi-filter-options]
+      > ul
+      > .no-hov-bg.sep {
+      display: none !important;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"] {
+      display: flex !important;
+      flex-direction: column;
+      margin: 4px 0 9px;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"]
+      > [data-kagi-filter-trigger] {
+      order: 1;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"]:has(> [data-kagi-filter-toggle]):not(
+        :has(> [data-kagi-filter-toggle]:checked)
+      )
+      > [data-kagi-filter-options],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-preview] {
+      order: 2;
+      margin-top: 3px;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"]:has(> [data-kagi-filter-toggle]):not(
+        :has(> [data-kagi-filter-toggle]:checked)
+      )
+      [data-kagi-filter-search],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"]:has(> [data-kagi-filter-toggle]):not(
+        :has(> [data-kagi-filter-toggle]:checked)
+      )
+      [data-kagi-region-list]
+      > :not([data-kagi-filter-recent]),
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"]:has(> [data-kagi-filter-toggle]):not(
+        :has(> [data-kagi-filter-toggle]:checked)
+      )
+      [data-kagi-region-list]
+      > [data-kagi-filter-recent]:nth-of-type(n + 5) {
+      display: none !important;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-region-list] {
+      width: 100%;
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+      max-height: none;
+      overflow: visible;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-options]
+      li,
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-preview]
+      > * {
+      display: block;
+      width: 100%;
+      height: auto !important;
+      min-height: 0 !important;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-options]
+      [data-kagi-filter-option],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-preview]
+      [data-kagi-filter-option] {
+      display: flex !important;
+      align-items: center;
+      width: 100% !important;
+      height: auto !important;
+      min-height: 24px;
+      box-sizing: border-box;
+      padding: 3px 7px !important;
+      border: 0;
+      border-radius: var(--ksb-radius);
+      background: transparent;
+      color: var(--app-text);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.25;
+      text-align: left;
+      text-decoration: none;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-options]
+      [data-kagi-filter-option]:hover,
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-preview]
+      [data-kagi-filter-option]:hover {
+      background: var(--hover-bg);
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-options]
+      [data-kagi-filter-option][aria-current="true"],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-preview]
+      [data-kagi-filter-option][aria-current="true"] {
+      color: var(--app-text);
+      background: transparent;
+      box-shadow: none;
+      font-weight: 700;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="region"]
+      [data-kagi-filter-options]
+      [data-kagi-filter-option],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-preview]
+      [data-kagi-filter-option] {
+      display: block !important;
+      padding-right: 22px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="matching"]
+      [data-kagi-filter-option],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      [data-kagi-filter-option] {
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="matching"]
+      .no-hov-bg.sep,
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      .no-hov-bg.sep {
+      height: 1px;
+      margin: 7px 0;
+      background: var(--ksb-border);
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      .no-hov-bg:not(.sep) {
+      padding: 6px 0 0;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      input[type="date"],
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-region-search] {
+      width: 100% !important;
+      min-width: 0;
+      height: 26px;
+      box-sizing: border-box;
+      margin: 0 0 8px;
+      padding: 0 9px;
+      border: 1px solid var(--ksb-border);
+      border-radius: var(--ksb-radius);
+      background: var(--input-bg, var(--app-bg));
+      color: var(--app-text);
+      font-size: 12px;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      .custom-date-range {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3px;
+      color: var(--app-text);
+      font-size: 12px;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      .custom-date-range
+      label {
+      margin: 0;
+      color: var(--ksb-muted);
+      font-size: 11px;
+      font-weight: 650;
+      line-height: 1.2;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      .img-min-max-sub {
+      margin-top: 4px;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
+      .btn.--primary {
+      justify-content: center;
+      min-height: 28px;
+      border-radius: var(--ksb-radius);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-menu] {
+      position: relative;
+      width: 100%;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-menu][open] {
+      z-index: 60;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-menu][open]
+      + [data-kagi-filter-preview] {
+      display: none !important;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-menu][open]
+      > [data-kagi-filter-options] {
+      position: absolute !important;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 70;
+      width: min(320px, calc(100vw - 48px)) !important;
+      max-height: min(65vh, 520px) !important;
+      box-sizing: border-box;
+      padding: 8px !important;
+      border: 1px solid var(--ksb-border) !important;
+      border-radius: var(--ksb-radius);
+      background: var(--app-bg) !important;
+      box-shadow: 0 12px 28px color-mix(in srgb, black 18%, transparent) !important;
+      overflow: auto !important;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-action] {
+      margin-top: 2px;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-filter-action]
+      > * {
+      width: 100%;
+      padding: 0 !important;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-action] {
+      justify-content: center;
+      width: 100% !important;
+      text-align: center;
+    }
+
+    body:has([data-kagi-search-filters] [data-kagi-filter="matching"])
+      [data-kagi-action="clear-filters"] {
+      color: var(--color-danger, var(--primary-700));
+    }
+  }
+}

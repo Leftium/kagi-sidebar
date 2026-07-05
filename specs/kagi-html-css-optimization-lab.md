@@ -524,6 +524,7 @@ Generated HTML should still be inspectable as static files when possible.
 - [x] Record sidebar metadata in `fixture-lab/css-corpus/manifest.json`.
 - [x] Run a selector audit against current captured Kagi pages.
 - [x] Produce `compatibility-summary.json`.
+- [x] Add semantic sidebar CSS as the first rewrite target.
 - [ ] Collect public CSS samples into `fixture-lab/css-corpus/original/`.
 - [ ] Preserve source URLs and retrieval dates for public samples.
 
@@ -534,7 +535,7 @@ Generated HTML should still be inspectable as static files when possible.
 - [x] Generate `original` inspection pages.
 - [x] Generate `backwards-compatible` pages by adding semantic hooks only.
 - [ ] Generate normalized diff-friendly copies.
-- [ ] Generate `optimized` pages with breaking simplifications, starting with the
+- [x] Generate `optimized` pages with breaking simplifications, starting with the
   filter shell and Region selector.
 
 ### Phase 4: CSS Injection Matrix
@@ -545,7 +546,7 @@ Generated HTML should still be inspectable as static files when possible.
 - [x] Include no-CSS baseline pages for each generated HTML variant.
 - [x] Build a Vite picker/index over the generated matrix pages.
 - [ ] Add original public themes across original and backwards-compatible.
-- [ ] Add optimized semantic examples only when useful.
+- [x] Add optimized semantic examples for the sidebar.
 
 ### Phase 5: Visual And Selector Verification
 
