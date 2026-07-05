@@ -3,12 +3,16 @@
 ## Project Context
 
 This repo contains a CSS-only Kagi Custom CSS customization that moves Kagi web
-search options from the horizontal toolbar into a compact left sidebar.
+search options from the horizontal toolbar into a compact left sidebar, plus a
+fixture lab for testing Kagi HTML/CSS optimization proposals.
 
 Primary files:
 
-- `SPEC.md` - Product and implementation spec.
-- `kagi-sidebar.css` - CSS-only Kagi Custom CSS stylesheet.
+- `specs/kagi-sidebar.md` - Sidebar product and implementation spec.
+- `sidebar/kagi-sidebar.css` - CSS-only Kagi Custom CSS stylesheet.
+- `proposal/` - Maintainer-facing Kagi HTML/CSS optimization proposal drafts.
+- `fixture-lab/` - Source captures, CSS corpus files, lab tools, and Vite site.
+- `generated/` - Ignored reproducible lab output.
 
 Keep the release scoped to Kagi web search (`/search`) on desktop. Images,
 Videos, News, Podcasts, Maps, Assistant, settings pages, and mobile/narrow
@@ -112,7 +116,7 @@ The current CSS-only approach:
 
 The CSS should stay pasteable into Kagi Settings > Appearance > Custom CSS. Keep
 it below Kagi's Custom CSS character limit. The last measured size of
-`kagi-sidebar.css` was about 20 KB.
+`sidebar/kagi-sidebar.css` was about 20 KB.
 
 Kagi Custom CSS settings:
 

@@ -1,0 +1,12 @@
+.DS_Store
+node_modules/
+
+# Reproducible lab output.
+generated/
+
+# Local tool output.
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log

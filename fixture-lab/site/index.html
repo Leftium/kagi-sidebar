@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kagi Fixture Lab</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="page-header">
+        <p class="eyebrow">Kagi HTML/CSS Optimization Lab</p>
+        <h1>Fixture matrix</h1>
+        <p>
+          Compare captured Kagi HTML variants against original and semantic
+          Custom CSS samples.
+        </p>
+      </header>
+
+      <section class="control-panel" aria-label="Matrix controls">
+        <label>
+          HTML variant
+          <select id="html-variant">
+            <option value="original">Original</option>
+            <option value="backwards-compatible">Backwards compatible</option>
+            <option value="optimized">Optimized</option>
+          </select>
+        </label>
+
+        <label>
+          CSS sample
+          <select id="css-sample">
+            <option value="sidebar">Sidebar</option>
+          </select>
+        </label>
+
+        <label>
+          CSS version
+          <select id="css-version">
+            <option value="original">Original</option>
+            <option value="semantic">Semantic</option>
+          </select>
+        </label>
+
+        <a id="matrix-link" class="button" href="/generated/matrix/">
+          Open matrix page
+        </a>
+      </section>
+
+      <section class="status-grid" aria-label="Generated reports">
+        <article>
+          <h2>Generation</h2>
+          <pre id="generation-summary">Run pnpm generate.</pre>
+        </article>
+
+        <article>
+          <h2>Selector audit</h2>
+          <pre id="compatibility-summary">Run pnpm audit-css.</pre>
+        </article>
+      </section>
+
+      <section>
+        <div class="section-heading">
+          <h2>Generated combinations</h2>
+          <a href="/generated/matrix/manifest.json">Matrix manifest</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>HTML</th>
+                <th>CSS sample</th>
+                <th>CSS version</th>
+                <th>Captures</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-rows">
+              <tr>
+                <td colspan="4">Run pnpm generate.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

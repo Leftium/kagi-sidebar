@@ -134,13 +134,13 @@ kagi-sidebar/
   sidebar/
     kagi-sidebar.css
     README.md
-    SPEC.md
 
   proposal/
     making-kagi-simpler-smaller-easier-to-customize.md
     appendix-real-world-kagi-custom-css.md
 
   specs/
+    kagi-sidebar.md
     kagi-html-css-optimization-lab.md
 
   fixture-lab/
@@ -164,6 +164,7 @@ Tracked source:
 
 - `sidebar/`: the distributable Custom CSS and sidebar-specific docs.
 - `proposal/`: the maintainer-facing Kagi proposal and appendices.
+- `specs/`: planning and implementation specs.
 - `fixture-lab/captures/original/`: redacted source captures.
 - `fixture-lab/css-corpus/`: original public CSS samples and semantic rewrites.
 - `fixture-lab/tools/`: generator, selector audit, and normalization scripts.
@@ -313,13 +314,13 @@ Generate all valid combinations, then expose them through an index page with
 pickers.
 
 ```text
-npm run lab:generate
+pnpm generate
   -> writes HTML variants
   -> writes valid HTML x CSS matrix pages
   -> writes selector and measurement reports
   -> writes screenshots when browser verification runs
 
-npm run lab:dev
+pnpm dev
   -> opens the Vite fixture-lab site
   -> picker: HTML variant
   -> picker: CSS sample
@@ -439,7 +440,7 @@ sidebar and at least a measured breakage report for the rest.
 
 ## Tooling Recommendation
 
-Create a small npm/Vite project for the fixture lab.
+Create a small pnpm/Vite project for the fixture lab.
 
 Direct file opening is viable for static HTML, but it is the wrong primary
 workflow for this project. The lab needs relative asset loading, CSS
@@ -463,11 +464,11 @@ Suggested scripts:
 ```json
 {
   "scripts": {
-    "lab:dev": "vite --host 127.0.0.1 fixture-lab/site",
-    "lab:generate": "node fixture-lab/tools/generate-fixtures.mjs",
-    "lab:audit": "node fixture-lab/tools/audit-selectors.mjs",
-    "lab:format": "prettier --write \"fixture-lab/**/*.{html,css,json,md}\" \"specs/**/*.md\"",
-    "lab:check": "npm run lab:generate && npm run lab:audit && playwright test"
+    "dev": "vite --host 127.0.0.1 --open /fixture-lab/site/",
+    "generate": "node fixture-lab/tools/generate-fixtures.mjs",
+    "audit-css": "node fixture-lab/tools/audit-selectors.mjs",
+    "format": "prettier --write README.md package.json \"fixture-lab/README.md\" \"fixture-lab/captures/**/*.md\" \"fixture-lab/css-corpus/manifest.json\" \"fixture-lab/site/**/*.{html,css,js}\" \"fixture-lab/tools/**/*.mjs\"",
+    "check": "pnpm generate && pnpm audit-css"
   }
 }
 ```
@@ -505,12 +506,11 @@ Generated HTML should still be inspectable as static files when possible.
 ### Phase 1: Spec And Clean Scaffold
 
 - Add this spec.
-- Move sidebar-specific files into `sidebar/`.
+- Move sidebar-specific files into `sidebar/`, keeping specs under `specs/`.
 - Move proposal prose into `proposal/`.
 - Create `fixture-lab/` with source directories and a README.
 - Add root `generated/` to `.gitignore`.
-- Add `package.json` with the `lab:*` scripts after confirming the tooling
-  shape.
+- Add `package.json` with pnpm scripts after confirming the tooling shape.
 - Keep stashed generated artifacts as reference, not as source to restore.
 
 ### Phase 2: CSS Corpus Survey
@@ -556,10 +556,10 @@ Generated HTML should still be inspectable as static files when possible.
 
 The new fixture system is working when:
 
-- `npm run lab:dev` opens an index with HTML variant, CSS sample, and CSS
+- `pnpm dev` opens an index with HTML variant, CSS sample, and CSS
   version pickers.
-- `npm run lab:generate` produces deterministic output.
-- `npm run lab:audit` reports selector compatibility by CSS sample and HTML
+- `pnpm generate` produces deterministic output.
+- `pnpm audit-css` reports selector compatibility by CSS sample and HTML
   variant.
 - Original CSS samples that match `original` do not regress on
   `backwards-compatible` unless explicitly waived.
@@ -595,8 +595,8 @@ The new fixture system is working when:
 
 4. Should Playwright be required for every contributor?
 
-   Recommendation: make screenshots part of `lab:check`, but keep
-   `lab:generate` and `lab:audit` usable without a browser.
+   Recommendation: make screenshots part of `check`, but keep `generate` and
+   `audit-css` usable without a browser.
 
 5. Should optimized HTML remove all private classes?
 

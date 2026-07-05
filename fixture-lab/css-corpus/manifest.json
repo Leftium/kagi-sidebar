@@ -1,0 +1,16 @@
+{
+  "samples": [
+    {
+      "id": "sidebar",
+      "name": "Kagi Sidebar",
+      "source_url": "local:sidebar/kagi-sidebar.css",
+      "retrieved_at": null,
+      "license": "MIT",
+      "kind": "functional-layout",
+      "functional_layout": true,
+      "local_original": "fixture-lab/css-corpus/original/sidebar.css",
+      "local_semantic": null,
+      "notes": "Initial corpus sample copied from the distributable sidebar CSS. Semantic rewrite is pending."
+    }
+  ]
+}
