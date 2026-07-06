@@ -1,65 +1,31 @@
 # Kagi Semantic Hooks and Components
 
-Date: July 6, 2026
-Status: Draft proposal
-Audience: Kagi engineers, designers, frontend maintainers, and Custom CSS authors.
+Custom CSS can be used for full workflow changes, not just colors: density,
+readability, result emphasis, widget treatment, filter visibility, and filter
+placement. That flexibility is welcome, but today many useful changes depend on
+generated classes, private IDs, wrapper depth, visible text, and dropdown
+internals.
 
-One sentence: Kagi can make search easier to theme, customize, and maintain by
-exposing stable semantic hooks and semantic component contracts for page
-identity, filters, results, widgets, actions, popovers, and layout.
+Simple proposal: expose a small `data-kagi-*` contract for search. Semantic
+hooks identify public product concepts. Semantic component contracts define the
+stable parts of controls that users can style, hide, show, or move.
 
-This is not a request for Kagi to ship a sidebar. The sidebar is a case study:
-it shows that useful Custom CSS is possible today, but it also shows where
-outside CSS has to reverse-engineer private markup and generated CSS.
+This is not a request for Kagi to ship a sidebar. The sidebar is only the case
+study: Custom CSS can prototype useful layout changes today, but it has to
+reverse-engineer private markup to do it.
 
-## Summary
-
-Kagi already supports Custom CSS, and users use it for more than color changes.
-Real themes change density, readability, visibility, result emphasis, widget
-treatment, and workflow surfaces. That is a strength. The problem is that many
-useful changes have to target generated classes, private IDs, child positions,
-visible text, or implementation-specific dropdown structure.
-
-The practical proposal is small:
-
-- Add stable `data-kagi-*` hooks for public product concepts.
-- Give common UI components stable anatomy: trigger, panel, list, option,
-  preview, action, and state.
-- Keep JS-enhanced search and basic/no-JS search on the same public contract.
-- Let Kagi-owned CSS and user Custom CSS both target those contracts.
-
-This would make theming easier, but the bigger gain is maintainability. A theme
-that targets "result title" or "quick answer widget" should not break because
-Kagi renamed a generated class or changed wrapper markup. Kagi should be free to
-refactor internals while preserving the public contract.
-
-## What The Outside Experiments Showed
-
-We experimented with simplifying Kagi HTML and CSS from captured generated
-output. That was useful for diagnosis, but it is not a realistic path to a clean
-frontend contract.
-
-Generated output only shows the final shape. It does not show the source
-components, state model, accessibility decisions, or the boundary between
-product behavior and incidental implementation. An outside rewrite can add
-attributes or rearrange markup, but it quickly becomes another compatibility
-layer over private structure.
-
-The better conclusion is narrower and more actionable: use the experiments to
-identify selector pain, then define the semantic hooks and component contracts
-inside Kagi's frontend source.
-
-## Core Principle
+## The Contract
 
 Custom CSS should target concepts and states, not implementation details.
 
-Good targets:
+Good public targets:
 
-- Page surface: search, home, or another product surface.
-- Result mode: web, images, videos, news, or another mode.
-- Component identity: filter, result, widget, action, popover.
-- Component part: trigger, panel, list, option, title, URL, snippet.
-- State: active, expanded, selected, hidden, disabled.
+- Page and mode: search, web results, images, videos, or news.
+- Result anatomy: result, title, URL, snippet, metadata, and actions.
+- Widget anatomy: widget, title, body, and actions.
+- Filter anatomy: filter, trigger, value, options, section, search, and action.
+- Popover anatomy: trigger, panel, list, option, and action menu.
+- State: current, expanded, selected, hidden, disabled, and checked.
 
 Poor public targets:
 
@@ -70,12 +36,8 @@ Poor public targets:
 - Visible text used as a selector.
 - Popup positioning or hidden-state implementation details.
 
-## Contract Layers
-
-Semantic hooks and semantic components solve different problems.
-
-Semantic hooks identify what an element means. They can be added to today's DOM
-without changing layout or behavior:
+Semantic hooks can be additive. They identify what an element means without
+requiring a rewrite:
 
 ```html
 <body data-kagi-surface="search" data-kagi-result-mode="web">
@@ -87,43 +49,44 @@ without changing layout or behavior:
 </body>
 ```
 
-Semantic components define stable anatomy for controls Kagi expects people to
-style or move:
+Kagi can still change the internal DOM, split components, rename generated
+classes, and move wrappers. Custom CSS that only depends on the public contract
+keeps working.
+
+Semantic components are the next layer. They give stable anatomy to controls
+that people reasonably want to style or move:
 
 ```html
 <section data-kagi-filter="region" data-kagi-filter-kind="single-select">
-  <button data-kagi-filter-trigger aria-expanded="false">Region</button>
-  <div data-kagi-filter-preview>...</div>
-  <div data-kagi-filter-options data-kagi-popover-panel>...</div>
+  <button data-kagi-filter-trigger aria-expanded="false">
+    <span data-kagi-filter-label>Region</span>
+    <span data-kagi-filter-value>United States</span>
+  </button>
+  <div data-kagi-filter-options data-kagi-popover-panel>
+    <div data-kagi-filter-section="recent">...</div>
+  </div>
 </section>
 ```
 
-Hooks make existing theming less fragile. Component contracts are what make
-larger layout changes maintainable, because the CSS can style known parts
-instead of undoing private dropdown behavior.
+Hooks make selectors stable. Component contracts make larger layout changes
+maintainable, because the CSS can style known parts instead of undoing private
+dropdown behavior.
 
-Native layout modes are the product-owned layer above both. If Kagi wants to
-support a filter sidebar, compact toolbar, or other major placement change, that
-mode should eventually be a Kagi layout option or documented layout contract,
-not a pile of external CSS that shifts headers and reverses hidden popovers.
+## Recommended Hooks
 
-## Recommended Public Hooks
-
-The first hook set should be small, stable, and open-ended.
+Start with a small search contract. These names are a suggested shape, not a
+complete component spec.
 
 Page:
 
-- `data-kagi-contract="search-dom-v0"`
 - `data-kagi-surface="search"`
 - `data-kagi-result-mode="web"`
-- `data-kagi-renderer="enhanced"` or `data-kagi-renderer="basic"`
 
 Layout:
 
 - `data-kagi-layout-slot="app-header"`
 - `data-kagi-layout-slot="search-controls"`
 - `data-kagi-layout-slot="result-list"`
-- `data-kagi-layout-slot="side-panel"`
 
 Search:
 
@@ -141,11 +104,13 @@ Filters:
 - `data-kagi-filter-kind`, with values such as `single-select`,
   `multi-select`, `range`, and `action`
 - `data-kagi-filter-trigger`
-- `data-kagi-filter-preview`
+- `data-kagi-filter-label`
+- `data-kagi-filter-value`
 - `data-kagi-filter-options`
 - `data-kagi-filter-option`
 - `data-kagi-filter-search`
 - `data-kagi-filter-section`
+- `data-kagi-filter-action`
 
 Results:
 
@@ -176,75 +141,48 @@ Popovers:
 - `data-kagi-action-menu`
 
 State should use standard HTML and ARIA where possible: `aria-current`,
-`aria-expanded`, `hidden`, `disabled`, `checked`, `open`, and form state. If a
-state cannot be represented cleanly with native attributes, a synchronized
-`data-state` value is preferable to exposing private classes.
+`aria-expanded`, `aria-selected`, `hidden`, `disabled`, `checked`, `open`, and
+form state. If a state cannot be represented cleanly with native attributes, a
+synchronized `data-state` value is better than exposing private classes.
 
 Hook values should be lower-kebab-case and open-ended. Custom CSS should handle
 unknown result types, widgets, actions, and modes without assuming the set is
 complete.
 
-## Why This Helps Theming
+## Why Components Matter
 
-Today, a theme often needs several selectors for one product concept. "Result
-title" may mean one selector for web results, another for grouped results,
-another for news, and another for a widget. The theme works until a wrapper or
-generated class changes.
+Additive hooks make themes less fragile, but they do not automatically make
+layout-changing Custom CSS reliable.
 
-With semantic hooks, the same change becomes straightforward:
-
-```css
-[data-kagi-result-title-link] {
-  text-decoration-thickness: 0.08em;
-}
-
-[data-kagi-result-url],
-[data-kagi-result-snippet] {
-  color: var(--app-text);
-}
-
-[data-kagi-widget="quick-answer"] {
-  border-inline-start: 3px solid var(--primary);
-}
-```
-
-The CSS is not only shorter. It is easier for Kagi to support and easier for
-theme authors to maintain. Kagi can change the internal DOM, split components,
-or rename private classes without breaking Custom CSS that only depends on the
-public hook.
-
-## Why Hooks Alone Are Not Enough
-
-Additive hooks help styling and theme maintenance, but they do not automatically
-make layout-changing Custom CSS reliable.
-
-Search filters are the clearest example. A CSS-only sidebar can work today
+Search filters are a good example. A CSS-only sidebar can work today
 because Kagi's dropdown contents are present in the DOM. But the stylesheet has
 to know how closed dropdowns are hidden, which wrappers hold fixed heights, how
-each trigger is wired, which options can be promoted, and which page containers
-must be shifted. Those are component anatomy questions, not selector-name
-questions.
+each trigger is wired, which nodes are options, sections, search fields, or
+actions, and which page containers are affected when controls move. Those are
+component anatomy questions, not selector-name questions.
 
 For durable customization, filters need a semantic component contract:
 
-- Filter identity: time, region, sort, matching, lens.
+- Identity: time, region, sort, matching, lens.
 - Trigger: the visible control that opens or identifies the filter.
-- Preview: the subset safe to show outside the popup.
+- Value: the current selection or summary shown by the closed control.
 - Options: the full selectable list or form controls.
+- Section: a named group inside the panel, such as recent regions or custom
+  date controls.
 - Search: local filtering when a list is long.
-- Action: clear, advanced search, or other command controls.
+- Action: clear, advanced search, or another command.
 - State: active option, expanded popup, hidden option, disabled option.
 
-Once Kagi owns that anatomy, Kagi CSS and user CSS can both style the component
-without depending on private dropdown internals.
+Once Kagi owns that anatomy, Kagi CSS and user CSS can both target the same
+component contract instead of depending on private dropdown internals.
 
-## No-JS Contract
+## Keep Basic Search Aligned
 
-The public contract should be shared by `/search` and `/html/search`. JavaScript
-can enhance controls, but the underlying meaning should be visible in ordinary
-HTML.
+The public contract should be shared by `/search` and `/html/search`.
+JavaScript can enhance controls, but the underlying meaning should stay visible
+in ordinary HTML.
 
-Preferred primitives:
+Useful primitives:
 
 - `form`, `input`, `select`, and `button` for submitted search state.
 - `a[href]` for navigation.
@@ -255,59 +193,25 @@ Preferred primitives:
 This keeps basic search first-class and prevents the JS-enhanced page from
 becoming the only place where public semantics exist.
 
-## Migration Path
+## Rollout
 
-Kagi does not need to replace everything at once.
+Kagi does not need to solve the whole contract at once.
 
-1. Add page, mode, result, widget, action, and filter identity hooks to current
-   markup.
+1. Add page, surface, result, widget, action, and filter identity hooks to the
+   current markup.
 2. Make `/search` and `/html/search` expose the same public hook names.
 3. Publish a short Custom CSS selector map from common private selectors to
    semantic hooks.
-4. Convert one high-impact component at a time, starting with search filters or
-   result cards.
-5. Add stable component anatomy for popovers and dropdowns before encouraging
-   layout-changing Custom CSS.
-6. Deprecate private-selector compatibility after Kagi has a documented
-   replacement path.
+4. Define component anatomy for high-impact filters and popovers.
+5. Add documented layout hooks for existing page regions only where Kagi wants
+   to support placement changes.
 
 Some existing Custom CSS will still break when private structure changes. That
 is acceptable if the new contract is documented, additive at first, and clearly
 better than preserving accidental selectors forever.
 
-## Priorities
-
-P0: Add page, surface, mode, and renderer hooks.
-
-P1: Add result, title, URL, snippet, widget, and action hooks.
-
-P2: Add filter identity, option, active-state, and popup-state hooks.
-
-P3: Define semantic component anatomy for high-impact filters and popovers.
-
-P4: Expose layout slots, layout variables, or native layout modes for supported
-control placement.
-
-P5: Document the Custom CSS contract and migration map.
-
-## Non-Goals
-
-- This proposal does not require Kagi to ship a sidebar.
-- It does not require preserving every private selector used by existing Custom
-  CSS.
-- It does not ask outside generated-output rewrites to become the product plan.
-- It does not require cutting-edge CSS as the core compatibility story.
-- It does not cover Settings pages unless Kagi expands Custom CSS to that
-  surface.
-
-## Acceptance Criteria
-
-- A Custom CSS author can target result titles, URLs, snippets, widgets,
-  filters, actions, and popovers without private selectors.
-- Active and expanded states are available through standard attributes or a
-  documented state hook.
-- JS-enhanced and basic/no-JS search expose the same public contract.
-- Kagi can refactor internal classes and wrappers without breaking CSS written
-  against the semantic contract.
-- Layout-changing customization has a component or layout contract instead of
-  relying on hidden dropdown internals.
+Success looks like this: a theme can target result titles, URLs, snippets,
+widgets, filters, actions, and popovers without private selectors; active and
+expanded states are available through standard attributes or documented state
+hooks; and Kagi can refactor internal classes and wrappers without breaking CSS
+written against the public contract.
