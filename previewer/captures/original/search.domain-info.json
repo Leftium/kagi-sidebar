@@ -1,5 +1,5 @@
 {
-  "sourceCapture": "fixture-lab/captures/original/search.html",
+  "sourceCapture": "previewer/captures/original/search.html",
   "sourceUrl": "https://kagi.com/search?q=kagi+css+selectors&no_css=1",
   "event": "provider:domain_info",
   "renderedDomains": [

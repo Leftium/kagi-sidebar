@@ -5,7 +5,7 @@ Store redacted Kagi HTML captures here.
 Rules:
 
 - Commit source captures only after credential redaction.
-- Keep original captures separate from generated variants.
+- Keep original captures separate from generated preview pages.
 - Prefer neutral search queries.
 - Do not store tokenized Kagi URLs.
 - For JS-enhanced `/search` captures, keep script tags when runtime interactions

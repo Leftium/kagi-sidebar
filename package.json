@@ -6,19 +6,14 @@
   "packageManager": "pnpm@11.10.0",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --open /",
-    "generate": "node fixture-lab/tools/generate-fixtures.mjs",
-    "audit-css": "node fixture-lab/tools/audit-selectors.mjs",
-    "capture-domain-info": "node fixture-lab/tools/capture-domain-info.mjs",
-    "check-js-popovers": "node fixture-lab/tools/check-js-popovers.mjs",
-    "format": "prettier --write README.md index.html package.json \"fixture-lab/README.md\" \"fixture-lab/captures/**/*.md\" \"fixture-lab/css-corpus/manifest.json\" \"fixture-lab/css-corpus/semantic/**/*.css\" \"fixture-lab/kagi-authored-css/**/*.css\" \"fixture-lab/site/**/*.{html,css,js}\" \"fixture-lab/tools/**/*.mjs\"",
-    "check": "pnpm generate && pnpm audit-css"
+    "generate": "node previewer/tools/generate-previews.mjs",
+    "capture-domain-info": "node previewer/tools/capture-domain-info.mjs",
+    "format": "prettier --write README.md index.html package.json \"src/README.md\" \"src/**/*.css\" \"previewer/README.md\" \"previewer/captures/**/*.md\" \"previewer/site/**/*.{html,css,js}\" \"previewer/tools/**/*.mjs\"",
+    "check": "node --check previewer/tools/generate-previews.mjs && node --check previewer/tools/capture-domain-info.mjs && node --check previewer/site/main.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "cheerio": "^1.2.0",
-    "parse5": "^8.0.1",
-    "postcss": "^8.5.16",
-    "postcss-selector-parser": "^7.1.4",
     "prettier": "^3.9.4",
     "vite": "^8.1.3"
   }

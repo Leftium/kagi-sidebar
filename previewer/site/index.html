@@ -3,21 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kagi Fixture Lab</title>
+    <title>Kagi Custom CSS Previewer</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="page-shell">
       <header class="page-header">
         <div>
-          <p class="eyebrow">Kagi HTML/CSS Optimization Lab</p>
+          <p class="eyebrow">Kagi Custom CSS Previewer</p>
           <p class="lede">
-            Compare Kagi HTML/CSS bundles against Custom CSS samples.
+            Open captured Kagi search pages with a selected Custom CSS file.
           </p>
         </div>
       </header>
 
-      <section class="control-panel" aria-label="Matrix controls">
+      <section class="control-panel" aria-label="Preview controls">
         <div class="control-group">
           <div class="control-copy">
             <span class="step-number">1</span>
@@ -29,39 +29,23 @@
         <div class="control-group">
           <div class="control-copy">
             <span class="step-number">2</span>
-            <h2>HTML variant</h2>
-          </div>
-          <div id="html-variant-options" class="choice-grid"></div>
-        </div>
-
-        <div class="control-group">
-          <div class="control-copy">
-            <span class="step-number">3</span>
             <h2>Custom CSS</h2>
           </div>
-          <div id="css-sample-options" class="choice-grid"></div>
-        </div>
-
-        <div class="control-group">
-          <div class="control-copy">
-            <span class="step-number">4</span>
-            <h2>CSS variant</h2>
-          </div>
-          <div id="css-version-options" class="choice-grid"></div>
+          <div id="css-file-options" class="choice-grid"></div>
         </div>
 
         <div class="open-panel">
           <a
             class="button button-large"
-            id="open-fixture-button"
+            id="open-preview-button"
             href="#"
             target="_blank"
             rel="noopener"
           >
-            Open selected combination
+            Open selected preview
           </a>
           <p id="selection-status" class="selection-status">
-            Load generated fixtures to open a page.
+            Load generated previews to open a page.
           </p>
         </div>
       </section>

@@ -1,23 +1,29 @@
 # Kagi Semantic Sidebar Evaluation
 
 **Date**: 2026-07-06
-**Status**: In Progress
+**Status**: Concluded
 **Owner**: Project maintainer
 **Supersedes**: `specs/kagi-html-css-optimization-lab.md` as the active execution slice
 
 ## One Sentence
 
-Keep the fixture lab active by narrowing it to two claims: additive semantic
-hooks should preserve existing Custom CSS, and future semantic sidebar CSS
-should target an optimized component structure that actually owns filter
-behavior.
+Conclude the semantic-sidebar fixture experiment and return the repo to the
+current Custom CSS sidebar, using local captures only as a preview surface.
 
 ## Overview
 
 The broader fixture lab spec remains useful background, but the sidebar
 experiment showed that its first proof matrix mixed incompatible jobs. The
-narrowed lab should prove compatibility on today's DOM and use optimized,
-breaking markup for semantic component experiments.
+semantic matrix is no longer active. The maintained path is now
+`src/kagi-sidebar.css` plus the `previewer/` capture viewer.
+
+## Outcome
+
+The experiment answered the main question: semantic hooks alone do not make the
+sidebar CSS meaningfully simpler because the hard work is component ownership,
+not selector spelling. The repo should focus on the current CSS-only sidebar and
+use captured Kagi pages to check that release artifact against JS-enhanced and
+basic/no-JS search.
 
 ## Relation To The Broad Lab Spec
 
@@ -25,9 +31,8 @@ breaking markup for semantic component experiments.
 fixture system: `original`, `backwards-compatible`, and `optimized`. That model
 is still useful, but its semantic-sidebar expectations were too broad.
 
-This spec is the active slice for the next branch. Read the broad spec for
-project structure, tooling, and generated artifact conventions. Use this spec
-for current acceptance criteria and proposal wording.
+This spec is now historical. Read `specs/kagi-sidebar.md` for the current
+sidebar behavior and `previewer/README.md` for local preview workflow.
 
 ## Finding
 
@@ -50,46 +55,25 @@ turn current dropdown internals into a clean sidebar component.
 
 Use these terms consistently across proposal and lab docs:
 
-| Term | Meaning | Fixture implication |
-| --- | --- | --- |
-| Semantic hooks | Stable `data-kagi-*` attributes added to existing markup. | Belongs in `backwards-compatible`; old CSS should keep working. |
-| Semantic component structure | Markup and Kagi-authored CSS organized around component anatomy such as trigger, preview, popover, list, option, search, section, and action. | Belongs in `optimized`; old private selectors may break. |
-| Native layout modes | Kagi-owned placement options, such as horizontal toolbar or sidebar, exposed through variables, attributes, or settings. | Custom CSS becomes preference styling instead of behavior reconstruction. |
+| Term                         | Meaning                                                                                                                                       | Fixture implication                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Semantic hooks               | Stable `data-kagi-*` attributes added to existing markup.                                                                                     | Belongs in `backwards-compatible`; old CSS should keep working.           |
+| Semantic component structure | Markup and Kagi-authored CSS organized around component anatomy such as trigger, preview, popover, list, option, search, section, and action. | Belongs in `optimized`; old private selectors may break.                  |
+| Native layout modes          | Kagi-owned placement options, such as horizontal toolbar or sidebar, exposed through variables, attributes, or settings.                      | Custom CSS becomes preference styling instead of behavior reconstruction. |
 
-## Active Scope
+## Current Workflow
 
-Keep the fixture lab for:
+Keep the local previewer for:
 
-- Testing `sidebar/kagi-sidebar.css` against captured Kagi pages.
-- Proving `backwards-compatible + sidebar.original.css` has no selector
-  regressions from additive hooks.
-- Auditing real public Custom CSS samples against `original` and
-  `backwards-compatible` markup.
-- Demonstrating one optimized semantic filter component, starting with Region,
-  where the DOM owns preview, popover, option, search, and list structure.
-- Keeping byte and selector metrics separate for standard Kagi output,
-  Kagi-authored optimized CSS, and user Custom CSS.
+- Testing `src/kagi-sidebar.css` against captured Kagi pages.
+- Comparing JS-enhanced `/search` and basic/no-JS `/html/search` captures.
+- Trying optional extra `.css` files from `previewer/custom-css/`.
+- Reporting the Custom CSS character count against Kagi's 40,000 character
+  limit.
 
-Do not keep `backwards-compatible + sidebar.semantic.css` as a headline proof.
-If that combination exists, label it as a diagnostic bridge. It should not drive
-the proposal because it asks one stylesheet to support both current dropdown
-internals and future component anatomy.
-
-## Target Matrix
-
-Primary proof matrix:
-
-| Combination | Purpose |
-| --- | --- |
-| `original + sidebar.original.css` | Shows the current distributable sidebar CSS against captured Kagi DOM. |
-| `backwards-compatible + sidebar.original.css` | Proves additive hooks did not break existing functional Custom CSS. |
-| `optimized + region.semantic.css` or `optimized + sidebar.semantic.css` | Demonstrates the future component contract once markup owns sidebar behavior. |
-
-Diagnostic only:
-
-| Combination | Purpose |
-| --- | --- |
-| `backwards-compatible + sidebar.semantic.css` | Tests whether a bridge stylesheet is possible, but it is not required for the proposal. |
+Do not keep `backwards-compatible`, `optimized`, semantic CSS, selector audits,
+or byte-saving reports in the active workflow. Those belonged to the proposal
+experiment and are no longer needed for maintaining the current sidebar CSS.
 
 ## Source Access Limitation
 
@@ -106,55 +90,36 @@ claiming exact parity for optimized markup.
 ## Implementation Plan
 
 - [x] Update proposal prose to separate semantic hooks, semantic component
-  structure, and native layout modes.
+      structure, and native layout modes.
 - [x] Update fixture docs so `backwards-compatible` means additive hooks and
-  compatibility only.
-- [ ] Move semantic sidebar proof to optimized markup, preferably a focused
-  Region component before a full sidebar.
-- [x] Keep `sidebar/kagi-sidebar.css` as the real release artifact and use the
-  lab to test it, not to replace it.
-- [ ] Add public Custom CSS samples only when they improve selector
-  compatibility evidence.
+      compatibility only.
+- [x] Drop semantic CSS and optimized bundle fixtures from the active workflow.
+- [x] Keep `src/kagi-sidebar.css` as the real release artifact and use the
+      lab to test it, not to replace it.
+- [x] Replace the fixture lab with a smaller previewer for captured Kagi pages
+      and local Custom CSS files.
 
 ## Verification
 
-The narrowed lab is working when:
+The refactor is working when:
 
-- `backwards-compatible + sidebar.original.css` renders like the original
-  sidebar and has no unwaived selector regressions.
-- `backwards-compatible` pages expose semantic hooks without requiring semantic
-  sidebar CSS.
-- The optimized Region component can be styled through semantic component
-  anatomy without reversing current Kagi dropdown internals.
-- Proposal claims distinguish maintainability and Custom CSS safety from byte
-  savings.
-- Generated reports do not merge user Custom CSS bytes into standard Kagi
-  output savings.
+- `pnpm generate` can produce one page for each captured renderer and Custom CSS
+  file.
+- The picker offers only Capture and Custom CSS choices.
+- The generated pages load `src/kagi-sidebar.css` directly.
+- The picker shows the Custom CSS character count against Kagi's 40,000
+  character limit.
 
 ## Decisions
 
-| Decision | Class | Choice | Rationale |
-| --- | --- | --- | --- |
-| Active lab shape | 2 coherence | Narrow rather than delete the fixture lab | The lab still helps test sidebar CSS and compatibility, but the broad semantic bridge proof was misleading. |
-| Backwards-compatible role | 1 evidence | Additive hooks only | This is the cleanest way to measure whether old Custom CSS still works. |
-| Semantic sidebar role | 2 coherence | Optimized/breaking DOM only | Semantic component CSS needs a DOM that owns component behavior. |
-| Main proposal claim | 2 coherence | Maintainability and safer functional Custom CSS | The experiment supports this more strongly than dramatic byte savings. |
+| Decision                  | Class       | Choice                                          | Rationale                                                                                    |
+| ------------------------- | ----------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Active preview shape      | 2 coherence | Use captures plus Custom CSS files only         | This directly supports maintaining the current sidebar release.                              |
+| Backwards-compatible role | 1 evidence  | Remove from active workflow                     | The additive-hook proof concluded and is not needed for sidebar CSS maintenance.             |
+| Semantic sidebar role     | 2 coherence | Remove from active workflow                     | Semantic component CSS needs Kagi-owned component changes, not a local compatibility bridge. |
+| Main proposal claim       | 2 coherence | Maintainability and safer functional Custom CSS | The experiment supports this more strongly than dramatic byte savings.                       |
 
 ## Open Questions
 
-1. Should the optimized proof start with a standalone Region component or the
-   full filter panel?
-
-   Recommendation: start with Region. It has enough complexity to prove the
-   component contract without reopening the whole sidebar layout problem.
-
-2. Should the lab keep the current `sidebar.semantic.css` file?
-
-   Recommendation: keep it only if it is relabeled as optimized/experimental or
-   replaced with a smaller Region-first semantic sample.
-
-3. Should optimized fixtures aim for exact visual parity?
-
-   Recommendation: no, not from generated output alone. Use them to demonstrate
-   the contract and rough visual equivalence. Exact parity is a source-level
-   refactor problem.
+No open questions remain for this experiment. Future Kagi proposal work should
+start from a fresh spec if source-level component changes become realistic.

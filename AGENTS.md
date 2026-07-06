@@ -4,25 +4,22 @@
 
 This repo contains a CSS-only Kagi Custom CSS customization that moves Kagi web
 search options from the horizontal toolbar into a compact left sidebar, plus a
-fixture lab for testing Kagi HTML/CSS optimization proposals.
+local previewer for checking captured Kagi pages with Custom CSS files.
 
 Primary files:
 
 - `specs/kagi-sidebar.md` - Sidebar product and implementation spec.
-- `sidebar/kagi-sidebar.css` - CSS-only Kagi Custom CSS stylesheet.
+- `src/kagi-sidebar.css` - CSS-only Kagi Custom CSS stylesheet.
 - `proposal/` - Maintainer-facing Kagi HTML/CSS optimization proposal drafts.
-- `fixture-lab/` - Source captures, CSS corpus files, lab tools, and Vite site.
-- `generated/` - Ignored reproducible lab output.
+- `previewer/` - Source captures, optional Custom CSS files, tools, and Vite site.
+- `generated/` - Ignored reproducible preview output.
 
 Keep the release scoped to Kagi web search (`/search`) on desktop. Images,
 Videos, News, Podcasts, Maps, Assistant, settings pages, and mobile/narrow
 viewports are out of scope unless the user explicitly expands the target.
 
-For the fixture lab proposal, the optimization surface is the entire Kagi search
-results DOM and all Kagi-authored CSS loaded by that page. Do not model the
-proposal as only the search controls, sidebar, or a single replacement
-stylesheet. Bundle metrics should include the full HTML document plus the full
-Kagi-authored CSS surface; user Custom CSS metrics stay separate.
+The old fixture-lab optimization matrix is historical. Current previewer work
+should stay focused on captured Kagi search pages plus Custom CSS files.
 
 ## Git Workflow
 
@@ -69,13 +66,13 @@ Images mode also has `#sidebarForm`, but with different filter controls. Gate
 web-search-only CSS with the web search Matching control so both `/search` and
 `/html/search` activate:
 
-```css
+```text
 body:has(#sidebarForm #dd_toggle_options)
 ```
 
 Use the release desktop breakpoint unless manual testing says otherwise:
 
-```css
+```text
 @media (min-width: 1100px)
 ```
 
@@ -122,7 +119,7 @@ The current CSS-only approach:
 
 The CSS should stay pasteable into Kagi Settings > Appearance > Custom CSS. Keep
 it below Kagi's Custom CSS character limit. The last measured size of
-`sidebar/kagi-sidebar.css` was about 20 KB.
+`src/kagi-sidebar.css` was about 20 KB.
 
 Kagi Custom CSS settings:
 
@@ -139,7 +136,7 @@ https://kagi.com/search?q=test&no_css=1
 ## Verification Workflow
 
 Prefer user visual verification over agent-driven screenshot and browser checks
-unless the user explicitly asks for automated validation. For CSS and fixture
+unless the user explicitly asks for automated validation. For CSS and preview
 layout work, the highest-value default is:
 
 1. Make the focused code or CSS change.
@@ -147,12 +144,11 @@ layout work, the highest-value default is:
 3. Describe the specific visual state to check.
 
 Do not spend time running broad browser probes, screenshot sweeps, Playwright
-measurements, or full fixture commands just to prove visual correctness. Ask
-first before running expensive verification such as `pnpm generate`,
-`pnpm audit-css`, `pnpm check-js-popovers`, or browser automation loops. Cheap
-static checks are fine when they directly catch edit mistakes, such as syntax
-checks for touched scripts, CSS parsing, formatting checks, and `git diff
---check`.
+measurements, or full previewer commands just to prove visual correctness. Ask
+first before running expensive verification such as `pnpm generate` or browser
+automation loops. Cheap static checks are fine when they directly catch edit
+mistakes, such as syntax checks for touched scripts, CSS parsing, formatting
+checks, and `git diff --check`.
 
 If an automated check is still useful, keep it narrow and explain why it is
 worth running before doing it. Stop once the check answers the specific
@@ -222,7 +218,8 @@ import { chromium } from "@playwright/test";
 
 const browser = await chromium.launch({
   headless: true,
-  executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  executablePath:
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
 });
 ```
 

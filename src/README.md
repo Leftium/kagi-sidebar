@@ -51,8 +51,8 @@ After installing, check:
   notes.
 - `../proposal/making-kagi-simpler-smaller-easier-to-customize.md` -
   maintainer-facing Kagi frontend simplification and Custom CSS hook proposal.
-- `../fixture-lab/` - compatibility lab for testing real Custom CSS against
-  proposed Kagi HTML variants.
+- `../previewer/` - local previewer for testing Custom CSS against captured
+  Kagi search pages.
 
 ## License
 

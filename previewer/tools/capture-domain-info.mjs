@@ -8,12 +8,7 @@ const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const captureRoot = path.join(
-  projectRoot,
-  "fixture-lab",
-  "captures",
-  "original",
-);
+const captureRoot = path.join(projectRoot, "previewer", "captures", "original");
 const kagiOrigin = "https://kagi.com";
 const systemChromeCandidates = [
   process.env.PLAYWRIGHT_CHROME_EXECUTABLE,
@@ -225,9 +220,9 @@ function redactDomainEntry(entry) {
 
 async function captureProviderPayloads(page, sourceUrl, expectedDomains) {
   await page.addInitScript(() => {
-    window.__kagiFixtureDomainInfoPayloads = [];
+    window.__kagiPreviewerDomainInfoPayloads = [];
     window.addEventListener("provider:domain_info", (event) => {
-      window.__kagiFixtureDomainInfoPayloads.push(event.detail?.payload);
+      window.__kagiPreviewerDomainInfoPayloads.push(event.detail?.payload);
     });
   });
 
@@ -240,7 +235,7 @@ async function captureProviderPayloads(page, sourceUrl, expectedDomains) {
     .waitForFunction(
       (domains) => {
         const captured = new Set(
-          (window.__kagiFixtureDomainInfoPayloads ?? []).flatMap((payload) =>
+          (window.__kagiPreviewerDomainInfoPayloads ?? []).flatMap((payload) =>
             (payload?.data ?? []).map((entry) => entry.domain),
           ),
         );
@@ -254,7 +249,7 @@ async function captureProviderPayloads(page, sourceUrl, expectedDomains) {
 
   await page.waitForTimeout(500);
 
-  return page.evaluate(() => window.__kagiFixtureDomainInfoPayloads ?? []);
+  return page.evaluate(() => window.__kagiPreviewerDomainInfoPayloads ?? []);
 }
 
 async function main() {
