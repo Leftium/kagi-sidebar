@@ -2,134 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content="0; url=/fixture-lab/site/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kagi Fixture Lab</title>
-    <link rel="stylesheet" href="/fixture-lab/site/styles.css" />
   </head>
   <body>
-    <main class="page-shell">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Kagi HTML/CSS Optimization Lab</p>
-          <h1>Fixture matrix</h1>
-          <p class="lede">
-            Compare captured Kagi HTML variants against Custom CSS samples.
-          </p>
-        </div>
-
-        <dl class="dev-details">
-          <div>
-            <dt>Start</dt>
-            <dd><code>pnpm dev</code></dd>
-          </div>
-          <div>
-            <dt>URL</dt>
-            <dd><code>http://127.0.0.1:5173/</code></dd>
-          </div>
-        </dl>
-      </header>
-
-      <section class="summary-grid" id="summary-cards" aria-label="Lab status">
-        <article class="summary-card">
-          <span class="summary-label">Status</span>
-          <strong>Loading</strong>
-        </article>
-      </section>
-
-      <section class="metric-guide" aria-label="Metric guide">
-        <div class="guide-grid">
-          <article>
-            <h2>Lower is usually better</h2>
-            <p>
-              Size, lines, selectors, Kagi hooks, private entries, structural
-              selectors, and <code>:has()</code> selectors all track maintenance
-              and fragility.
-            </p>
-          </article>
-          <article>
-            <h2>Hard gate</h2>
-            <p>
-              Backwards-compatible selector regressions should stay at
-              <strong>0</strong>.
-            </p>
-          </article>
-          <article>
-            <h2>Contextual</h2>
-            <p>
-              Matched selector counts should stay stable for compatibility, but
-              a higher match count is not automatically better.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section class="control-panel" aria-label="Matrix controls">
-        <div class="section-heading">
-          <h2>Compare</h2>
-          <a class="button" href="/generated/matrix/manifest.json">
-            Open matrix manifest
-          </a>
-        </div>
-
-        <div class="control-group">
-          <div class="control-copy">
-            <h3>Capture</h3>
-          </div>
-          <div id="capture-options" class="choice-grid"></div>
-        </div>
-
-        <div class="control-group">
-          <div class="control-copy">
-            <h3>Custom CSS</h3>
-          </div>
-          <div id="css-sample-options" class="choice-grid"></div>
-        </div>
-      </section>
-
-      <section class="comparison-section" aria-label="HTML variant comparison">
-        <div class="section-heading">
-          <h2>HTML variants</h2>
-        </div>
-        <div id="html-comparison" class="comparison-grid"></div>
-      </section>
-
-      <section class="comparison-section" aria-label="CSS version comparison">
-        <div class="section-heading">
-          <h2>CSS versions</h2>
-        </div>
-        <div id="css-version-comparison" class="comparison-grid"></div>
-      </section>
-
-      <section>
-        <div class="section-heading">
-          <h2>Generated combinations</h2>
-          <nav class="report-links" aria-label="Generated report links">
-            <a href="/generated/matrix/manifest.json">Matrix</a>
-            <a href="/generated/reports/generation-summary.json">Generation</a>
-            <a href="/generated/reports/compatibility-summary.json">Audit</a>
-          </nav>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Capture</th>
-                <th>HTML</th>
-                <th>CSS</th>
-                <th>File</th>
-                <th>Page</th>
-              </tr>
-            </thead>
-            <tbody id="matrix-rows">
-              <tr>
-                <td colspan="5">Run pnpm generate.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-
-    <script type="module" src="/fixture-lab/site/main.js"></script>
+    <p><a href="/fixture-lab/site/">Open Kagi Fixture Lab</a></p>
+    <script>
+      window.location.replace("/fixture-lab/site/");
+    </script>
   </body>
 </html>

@@ -1,19 +1,20 @@
 const controls = {
   captureOptions: document.querySelector("#capture-options"),
+  htmlVariantOptions: document.querySelector("#html-variant-options"),
   cssSampleOptions: document.querySelector("#css-sample-options"),
-  htmlComparison: document.querySelector("#html-comparison"),
-  cssVersionComparison: document.querySelector("#css-version-comparison"),
-  summaryCards: document.querySelector("#summary-cards"),
-  matrixRows: document.querySelector("#matrix-rows"),
+  cssVersionOptions: document.querySelector("#css-version-options"),
+  openFixtureButton: document.querySelector("#open-fixture-button"),
+  selectionStatus: document.querySelector("#selection-status"),
 };
 
 const preferredSelection = {
   captureId: "search",
+  bundleVariant: "original",
   cssSample: "sidebar",
+  cssVersion: "original",
 };
 
 let generationSummary = null;
-let compatibilitySummary = null;
 let selectorInventory = { samples: [] };
 let selectorMatches = { matches: [] };
 let matrixManifest = {
@@ -38,34 +39,6 @@ function uniqueValues(items, getValue) {
   return [...new Set(items.map(getValue))];
 }
 
-function currentCombinations() {
-  return matrixManifest.combinations ?? [];
-}
-
-function cssOptions() {
-  return matrixManifest.cssOptions ?? [];
-}
-
-function ensureValidState() {
-  const captures = captureOptions();
-  const samples = cssSampleOptions();
-
-  if (!captures.some((item) => item.id === state.captureId)) {
-    state.captureId =
-      captures.find((item) => item.id === preferredSelection.captureId)?.id ??
-      captures[0]?.id ??
-      preferredSelection.captureId;
-  }
-
-  if (!samples.some((item) => item.id === state.cssSample)) {
-    state.cssSample =
-      samples.find((item) => item.id === preferredSelection.cssSample)?.id ??
-      samples.find((item) => item.id !== "none")?.id ??
-      samples[0]?.id ??
-      preferredSelection.cssSample;
-  }
-}
-
 async function fetchJson(url) {
   const response = await fetch(url, { cache: "no-store" });
 
@@ -76,32 +49,31 @@ async function fetchJson(url) {
   return response.json();
 }
 
+function currentCombinations() {
+  return matrixManifest.combinations ?? [];
+}
+
+function cssOptions() {
+  return matrixManifest.cssOptions ?? [];
+}
+
 function humanize(value) {
   const labels = {
-    "backwards-compatible": "Backwards-compatible hooks",
-    "backwards-compatible-preserved": "Backwards-compatible preserved",
-    "backwards-compatible-regressions": "Backwards-compatible regressions",
+    "backwards-compatible": "Compat",
     current: "Current",
-    "html-search": "Basic HTML search",
+    "html-search": "HTML",
     none: "No CSS",
     original: "Original",
     optimized: "Optimized",
-    ready: "Ready",
-    search: "JS search",
+    search: "JS",
     semantic: "Semantic",
-    sidebar: "Kagi Sidebar",
-    "selector-inventory-only": "Selector inventory only",
-    "waiting-for-captures": "Waiting for captures",
+    sidebar: "Sidebar",
   };
 
   return labels[value] ?? String(value).replaceAll("-", " ");
 }
 
 function bundleVariantLabel(value) {
-  if (value === "original") {
-    return "Original bundle";
-  }
-
   return humanize(value);
 }
 
@@ -113,26 +85,46 @@ function cssSampleLabel(sample) {
   return sample.name || humanize(sample.id);
 }
 
-function cssVersionLabel(version) {
-  const cssVersion = version.cssVersion ?? version.version;
+function cssVersionLabel(option) {
+  const version = option.cssVersion ?? option.version;
 
-  if (version.cssSample === "none") {
-    return "No CSS baseline";
+  if ((option.cssSample ?? option.sampleId) === "none") {
+    return "No CSS";
   }
 
-  return humanize(cssVersion);
+  return humanize(version);
 }
 
-function cssCombinationLabel(option) {
-  if (option.cssSample === "none") {
-    return "No CSS baseline";
+function captureDescription(captureId) {
+  const descriptions = {
+    "html-search": "Basic no-JS renderer.",
+    search: "JS-enhanced renderer with Kagi runtime behavior.",
+  };
+
+  return descriptions[captureId] ?? "";
+}
+
+function htmlVariantDescription(bundleVariant) {
+  const descriptions = {
+    "backwards-compatible": "Captured DOM plus proposed semantic hooks.",
+    optimized: "Rewritten DOM using the proposed search-result structure.",
+    original: "Captured Kagi markup with private classes and IDs.",
+  };
+
+  return descriptions[bundleVariant] ?? "";
+}
+
+function cssVersionDescription(option) {
+  if ((option.cssSample ?? option.sampleId) === "none") {
+    return "No user Custom CSS.";
   }
 
-  const sampleName =
-    cssOptions().find((item) => item.sampleId === option.cssSample)
-      ?.sampleName ?? humanize(option.cssSample);
+  const descriptions = {
+    original: "Targets Kagi's private classes and IDs.",
+    semantic: "Targets proposed data-kagi hooks.",
+  };
 
-  return `${sampleName} ${cssVersionLabel(option)}`;
+  return descriptions[option.cssVersion ?? option.version] ?? "";
 }
 
 function formatBytes(bytes) {
@@ -157,13 +149,15 @@ function formatBytes(bytes) {
 }
 
 function formatDelta(bytes) {
-  if (bytes == null || bytes === 0) {
+  if (bytes == null) {
+    return "Pending";
+  }
+
+  if (bytes === 0) {
     return "0 B";
   }
 
-  const sign = bytes > 0 ? "+" : "-";
-
-  return `${sign}${formatBytes(Math.abs(bytes))}`;
+  return `${bytes > 0 ? "+" : "-"}${formatBytes(Math.abs(bytes))}`;
 }
 
 function statRow(label, value) {
@@ -173,58 +167,6 @@ function statRow(label, value) {
 function renderEmpty(target, message) {
   target.className = "empty-state";
   target.innerHTML = escapeHtml(message);
-}
-
-function renderChoiceGroup({
-  target,
-  name,
-  options,
-  selectedValue,
-  valueFor,
-  labelFor,
-  metaFor,
-  onChange,
-}) {
-  if (!options.length) {
-    renderEmpty(target, "Run pnpm generate.");
-    return;
-  }
-
-  target.className = options.length < 3 ? "choice-grid" : "select-row";
-
-  if (options.length < 3) {
-    target.innerHTML = options
-      .map((option) => {
-        const value = valueFor(option);
-        const checked = value === selectedValue;
-
-        return `<label class="choice-card${checked ? " is-selected" : ""}">
-          <input type="radio" name="${escapeHtml(name)}" value="${escapeHtml(value)}"${checked ? " checked" : ""} />
-          <span class="choice-title">${escapeHtml(labelFor(option))}</span>
-          <span class="choice-meta">${metaFor(option)}</span>
-        </label>`;
-      })
-      .join("");
-
-    target.querySelectorAll("input").forEach((input) => {
-      input.addEventListener("change", () => onChange(input.value));
-    });
-    return;
-  }
-
-  target.innerHTML = `<select aria-label="${escapeHtml(name)}">
-    ${options
-      .map((option) => {
-        const value = valueFor(option);
-
-        return `<option value="${escapeHtml(value)}"${value === selectedValue ? " selected" : ""}>${escapeHtml(labelFor(option))}</option>`;
-      })
-      .join("")}
-  </select>`;
-
-  target.querySelector("select").addEventListener("change", (event) => {
-    onChange(event.target.value);
-  });
 }
 
 function captureOptions() {
@@ -240,6 +182,12 @@ function captureOptions() {
       };
     },
   );
+}
+
+function bundleOptions() {
+  return (matrixManifest.bundles ?? []).length
+    ? matrixManifest.bundles
+    : (matrixManifest.bundleVariants ?? []).map((id) => ({ id }));
 }
 
 function cssSampleOptions() {
@@ -267,24 +215,15 @@ function cssSampleOptions() {
   });
 }
 
-function bundleVariants() {
-  return matrixManifest.bundleVariants?.length
-    ? matrixManifest.bundleVariants
-    : uniqueValues(
-        currentCombinations().filter(
-          (item) => item.captureId === state.captureId,
-        ),
-        (item) => item.bundleVariant ?? item.htmlVariant,
-      );
-}
-
 function cssOptionsForSample(cssSample) {
   return cssOptions().filter((item) => item.sampleId === cssSample);
 }
 
 function bundleMetric(captureId, bundleVariant) {
   const generatedBundles =
-    generationSummary?.generatedBundles ?? generationSummary?.generatedHtml ?? [];
+    generationSummary?.generatedBundles ??
+    generationSummary?.generatedHtml ??
+    [];
 
   return generatedBundles.find(
     (item) =>
@@ -296,7 +235,6 @@ function bundleMetric(captureId, bundleVariant) {
 function cssMetric(cssSample, cssVersion) {
   if (cssSample === "none") {
     return {
-      bytes: 0,
       sourceBytes: 0,
       minifiedBytes: 0,
       lineCount: 0,
@@ -310,6 +248,61 @@ function cssMetric(cssSample, cssVersion) {
 
   return (selectorInventory.samples ?? []).find(
     (item) => item.sampleId === cssSample && item.version === cssVersion,
+  );
+}
+
+function selectedCombination() {
+  return findCombination(
+    state.captureId,
+    state.bundleVariant,
+    state.cssSample,
+    state.cssVersion,
+  );
+}
+
+function findCombination(captureId, bundleVariant, cssSample, cssVersion) {
+  return currentCombinations().find(
+    (item) =>
+      item.captureId === captureId &&
+      (item.bundleVariant ?? item.htmlVariant) === bundleVariant &&
+      item.cssSample === cssSample &&
+      item.cssVersion === cssVersion,
+  );
+}
+
+function combinationExists(bundleVariant, cssSample, cssVersion) {
+  return Boolean(
+    findCombination(state.captureId, bundleVariant, cssSample, cssVersion),
+  );
+}
+
+function compatibleCssVersion(cssSample, bundleVariant, preferredVersion) {
+  const versions = cssOptionsForSample(cssSample);
+
+  return (
+    versions.find(
+      (option) =>
+        option.version === preferredVersion &&
+        combinationExists(bundleVariant, cssSample, option.version),
+    )?.version ??
+    versions.find(
+      (option) =>
+        option.version === preferredSelection.cssVersion &&
+        combinationExists(bundleVariant, cssSample, option.version),
+    )?.version ??
+    versions.find((option) =>
+      combinationExists(bundleVariant, cssSample, option.version),
+    )?.version ??
+    versions[0]?.version ??
+    "none"
+  );
+}
+
+function selectCompatibleCssVersion(bundleVariant = state.bundleVariant) {
+  state.cssVersion = compatibleCssVersion(
+    state.cssSample,
+    bundleVariant,
+    state.cssVersion,
   );
 }
 
@@ -335,107 +328,124 @@ function selectorMatchText(captureId, bundleVariant, cssSample, cssVersion) {
     : "No selector report";
 }
 
-function matrixCombinationsForBundleVariant(bundleVariant) {
-  return currentCombinations().filter(
-    (item) =>
-      item.captureId === state.captureId &&
-      (item.bundleVariant ?? item.htmlVariant) === bundleVariant &&
-      item.cssSample === state.cssSample,
-  );
+function kagiCssMinBytes(metric) {
+  return metric?.kagiAuthoredCssMetrics?.minifiedBytes;
 }
 
-function selectedCaptureOriginalBytes() {
-  return bundleMetric(state.captureId, "original")?.htmlBytes;
-}
-
-function measuredTotalBytes(bundle, cssMetricValue) {
-  if (!bundle || bundle.htmlBytes == null) {
-    return null;
-  }
-
-  if (bundle.kagiAuthoredCssMetrics?.minifiedBytes == null) {
+function measuredTotalBytes(bundle, customCss) {
+  if (bundle?.htmlBytes == null || kagiCssMinBytes(bundle) == null) {
     return null;
   }
 
   return (
     bundle.htmlBytes +
-    bundle.kagiAuthoredCssMetrics.minifiedBytes +
-    (cssMetricValue?.minifiedBytes ?? cssMetricValue?.bytes ?? 0)
+    kagiCssMinBytes(bundle) +
+    (customCss?.minifiedBytes ?? customCss?.bytes ?? 0)
   );
 }
 
-function renderSummaryCards() {
-  const combinations = currentCombinations();
-  const status =
-    compatibilitySummary?.status ?? generationSummary?.status ?? "Loading";
-  const cards = [
-    {
-      label: "Status",
-      value: humanize(status),
-    },
-    {
-      label: "Captures",
-      value: String(matrixManifest.captures?.length ?? 0),
-    },
-    {
-      label: "Bundle pages",
-      value: String(
-        (
-          generationSummary?.generatedBundles ??
-          generationSummary?.generatedHtml ??
-          []
-        ).length,
-      ),
-    },
-    {
-      label: "Matrix pages",
-      value: String(
-        generationSummary?.generatedMatrixPageCount ?? combinations.length,
-      ),
-    },
-    {
-      label: "CSS files",
-      value: String(compatibilitySummary?.cssFileCount ?? 0),
-    },
-    {
-      label: "Selectors",
-      value: String(compatibilitySummary?.selectorCount ?? 0),
-    },
-    {
-      label: "Kagi hooks",
-      value: String(compatibilitySummary?.privateSelectorTokenCount ?? 0),
-    },
-    {
-      label: "Regressions",
-      value: String(
-        compatibilitySummary?.backwardsCompatibleRegressionCount ?? 0,
-      ),
-    },
-  ];
+function originalBundleMetric() {
+  return bundleMetric(state.captureId, "original");
+}
 
-  controls.summaryCards.innerHTML = cards
-    .map(
-      (card) => `<article class="summary-card">
-        <span class="summary-label">${escapeHtml(card.label)}</span>
-        <strong>${escapeHtml(card.value)}</strong>
-      </article>`,
-    )
+function ensureValidState() {
+  const captures = captureOptions();
+  const bundles = bundleOptions();
+  const samples = cssSampleOptions();
+
+  if (!captures.some((item) => item.id === state.captureId)) {
+    state.captureId =
+      captures.find((item) => item.id === preferredSelection.captureId)?.id ??
+      captures[0]?.id ??
+      preferredSelection.captureId;
+  }
+
+  if (!bundles.some((item) => item.id === state.bundleVariant)) {
+    state.bundleVariant =
+      bundles.find((item) => item.id === preferredSelection.bundleVariant)
+        ?.id ??
+      bundles[0]?.id ??
+      preferredSelection.bundleVariant;
+  }
+
+  if (!samples.some((item) => item.id === state.cssSample)) {
+    state.cssSample =
+      samples.find((item) => item.id === preferredSelection.cssSample)?.id ??
+      samples.find((item) => item.id !== "none")?.id ??
+      samples[0]?.id ??
+      preferredSelection.cssSample;
+  }
+
+  const versions = cssOptionsForSample(state.cssSample);
+
+  if (!versions.some((item) => item.version === state.cssVersion)) {
+    state.cssVersion =
+      versions.find((item) => item.version === preferredSelection.cssVersion)
+        ?.version ??
+      versions[0]?.version ??
+      "none";
+  }
+
+  if (
+    !combinationExists(state.bundleVariant, state.cssSample, state.cssVersion)
+  ) {
+    selectCompatibleCssVersion();
+  }
+}
+
+function renderChoiceCards({
+  target,
+  name,
+  options,
+  selectedValue,
+  valueFor,
+  labelFor,
+  descriptionFor = () => "",
+  metaFor,
+  disabledFor = () => false,
+  onChange,
+}) {
+  if (!options.length) {
+    renderEmpty(target, "Run pnpm generate.");
+    return;
+  }
+
+  target.className = "choice-grid";
+  target.innerHTML = options
+    .map((option) => {
+      const value = valueFor(option);
+      const selected = value === selectedValue;
+      const disabled = disabledFor(option);
+      const description = descriptionFor(option);
+
+      return `<label class="choice-card${selected ? " is-selected" : ""}${disabled ? " is-disabled" : ""}" aria-disabled="${disabled ? "true" : "false"}">
+        <input type="radio" name="${escapeHtml(name)}" value="${escapeHtml(value)}"${selected ? " checked" : ""}${disabled ? " disabled" : ""} />
+        <span class="choice-title">${escapeHtml(labelFor(option))}</span>
+        ${
+          description
+            ? `<span class="choice-description">${escapeHtml(description)}</span>`
+            : ""
+        }
+        <span class="choice-meta">${metaFor(option)}</span>
+      </label>`;
+    })
     .join("");
+
+  target.querySelectorAll("input:not(:disabled)").forEach((input) => {
+    input.addEventListener("change", () => onChange(input.value));
+  });
 }
 
 function renderCaptureOptions() {
-  renderChoiceGroup({
+  renderChoiceCards({
     target: controls.captureOptions,
     name: "capture",
     options: captureOptions(),
     selectedValue: state.captureId,
     valueFor: (option) => option.id,
     labelFor: (option) => humanize(option.id),
-    metaFor: (option) =>
-      [
-        statRow("File", option.file),
-        statRow("Pages", capturePageCount(option.id)),
-      ].join(""),
+    descriptionFor: (option) => captureDescription(option.id),
+    metaFor: (option) => statRow("Source", option.file),
     onChange: (value) => {
       state.captureId = value;
       render();
@@ -443,8 +453,48 @@ function renderCaptureOptions() {
   });
 }
 
+function renderHtmlVariantOptions() {
+  const original = originalBundleMetric();
+
+  renderChoiceCards({
+    target: controls.htmlVariantOptions,
+    name: "html variant",
+    options: bundleOptions(),
+    selectedValue: state.bundleVariant,
+    valueFor: (option) => option.id,
+    labelFor: (option) => bundleVariantLabel(option.id),
+    descriptionFor: (option) => htmlVariantDescription(option.id),
+    metaFor: (option) => {
+      const metric = bundleMetric(state.captureId, option.id);
+      const customCss = cssMetric(state.cssSample, state.cssVersion);
+      const total = measuredTotalBytes(metric, customCss);
+      const htmlDelta =
+        metric?.htmlBytes == null || original?.htmlBytes == null
+          ? null
+          : metric.htmlBytes - original.htmlBytes;
+      const kagiCssDelta =
+        kagiCssMinBytes(metric) == null || kagiCssMinBytes(original) == null
+          ? null
+          : kagiCssMinBytes(metric) - kagiCssMinBytes(original);
+
+      return [
+        statRow("HTML", formatBytes(metric?.htmlBytes)),
+        statRow("HTML delta", formatDelta(htmlDelta)),
+        statRow("Kagi CSS min", formatBytes(kagiCssMinBytes(metric))),
+        statRow("Kagi CSS delta", formatDelta(kagiCssDelta)),
+        statRow("Surface + custom", formatBytes(total)),
+      ].join("");
+    },
+    onChange: (value) => {
+      state.bundleVariant = value;
+      selectCompatibleCssVersion(value);
+      render();
+    },
+  });
+}
+
 function renderCssSampleOptions() {
-  renderChoiceGroup({
+  renderChoiceCards({
     target: controls.cssSampleOptions,
     name: "custom CSS",
     options: cssSampleOptions(),
@@ -453,229 +503,133 @@ function renderCssSampleOptions() {
     labelFor: cssSampleLabel,
     metaFor: (option) =>
       [
-        statRow("Versions", String(option.versions.length)),
+        statRow("Variants", String(option.versions.length)),
         statRow(
-          "Pages",
+          "Compatible",
           String(
-            currentCombinations().filter(
-              (item) =>
-                item.captureId === state.captureId &&
-                item.cssSample === option.id,
+            option.versions.filter((version) =>
+              combinationExists(
+                state.bundleVariant,
+                option.id,
+                version.version,
+              ),
             ).length,
           ),
         ),
       ].join(""),
+    disabledFor: (option) =>
+      !option.versions.some((version) =>
+        combinationExists(state.bundleVariant, option.id, version.version),
+      ),
     onChange: (value) => {
       state.cssSample = value;
+      selectCompatibleCssVersion();
       render();
     },
   });
 }
 
-function renderHtmlComparison() {
-  const variants = bundleVariants();
-  const originalBytes = selectedCaptureOriginalBytes();
+function renderCssVersionOptions() {
+  const originalMetric =
+    state.cssSample === "none"
+      ? cssMetric("none", "none")
+      : cssMetric(state.cssSample, "original");
 
-  if (!variants.length) {
-    renderEmpty(controls.htmlComparison, "Run pnpm generate.");
-    return;
-  }
-
-  controls.htmlComparison.className = "comparison-grid html-comparison-grid";
-  controls.htmlComparison.innerHTML = variants
-    .map((bundleVariant) => {
-      const metric = bundleMetric(state.captureId, bundleVariant);
-      const delta =
-        metric?.htmlBytes == null || originalBytes == null
-          ? "Pending"
-          : formatDelta(metric.htmlBytes - originalBytes);
-      const combinations = matrixCombinationsForBundleVariant(bundleVariant);
-      const localKagiCss =
-        metric?.kagiAuthoredCssMetrics?.minifiedBytes == null
-          ? "External"
-          : formatBytes(metric.kagiAuthoredCssMetrics.minifiedBytes);
-      const bundleSurface =
-        metric?.totalBundleBytes == null
+  renderChoiceCards({
+    target: controls.cssVersionOptions,
+    name: "css variant",
+    options: cssOptionsForSample(state.cssSample),
+    selectedValue: state.cssVersion,
+    valueFor: (option) => option.version,
+    labelFor: cssVersionLabel,
+    descriptionFor: cssVersionDescription,
+    metaFor: (option) => {
+      const metric = cssMetric(option.sampleId, option.version);
+      const minDelta =
+        metric?.minifiedBytes == null || originalMetric?.minifiedBytes == null
           ? null
-          : formatBytes(metric.totalBundleBytes);
-
-      return `<article class="comparison-card">
-        <div class="card-heading">
-          <h3>${escapeHtml(bundleVariantLabel(bundleVariant))}</h3>
-        </div>
-        <div class="choice-meta">
-          ${statRow("HTML", formatBytes(metric?.htmlBytes))}
-          ${statRow("HTML delta", delta)}
-          ${statRow("Kagi CSS min", localKagiCss)}
-          ${statRow("Bundle total", bundleSurface ?? "External CSS")}
-          ${statRow("Source", metric?.path ?? "Pending")}
-        </div>
-        ${renderHtmlVariantLinkList(combinations, "No generated pages for selected CSS.")}
-      </article>`;
-    })
-    .join("");
-}
-
-function renderCssVersionComparison() {
-  const versions = cssOptionsForSample(state.cssSample);
-
-  if (!versions.length) {
-    renderEmpty(controls.cssVersionComparison, "Select a Custom CSS sample.");
-    return;
-  }
-
-  controls.cssVersionComparison.className = "comparison-grid";
-  controls.cssVersionComparison.innerHTML = versions
-    .map((version) => {
-      const metric = cssMetric(version.sampleId, version.version);
-      const combinations = currentCombinations().filter(
-        (item) =>
-          item.captureId === state.captureId &&
-          item.cssSample === version.sampleId &&
-          item.cssVersion === version.version,
+          : metric.minifiedBytes - originalMetric.minifiedBytes;
+      const matchText = selectorMatchText(
+        state.captureId,
+        state.bundleVariant,
+        option.sampleId,
+        option.version,
       );
 
-      return `<article class="comparison-card">
-        <div class="card-heading">
-          <h3>${escapeHtml(cssVersionLabel(version))}</h3>
-        </div>
-        <div class="choice-meta">
-          ${statRow("Source", formatBytes(metric?.sourceBytes ?? metric?.bytes))}
-          ${statRow("Minified", formatBytes(metric?.minifiedBytes ?? metric?.bytes))}
-          ${statRow("Lines", String(metric?.lineCount ?? 0))}
-          ${statRow("Selectors", String(metric?.selectorCount ?? 0))}
-          ${statRow("Kagi hooks", String(metric?.privateSelectorTokenCount ?? 0))}
-          ${statRow("Private entries", String(metric?.privateSelectorCount ?? 0))}
-          ${statRow("Structural", String(metric?.structuralSelectorCount ?? 0))}
-          ${statRow(":has()", String(metric?.modernSelectorCount ?? 0))}
-        </div>
-        ${renderVersionMatchList(version, combinations)}
-      </article>`;
-    })
-    .join("");
+      return [
+        statRow("Source", formatBytes(metric?.sourceBytes ?? metric?.bytes)),
+        statRow(
+          "Minified",
+          formatBytes(metric?.minifiedBytes ?? metric?.bytes),
+        ),
+        statRow("Min delta", formatDelta(minDelta)),
+        statRow("Selectors", String(metric?.selectorCount ?? 0)),
+        statRow("Kagi hooks", String(metric?.privateSelectorTokenCount ?? 0)),
+        statRow("Structural", String(metric?.structuralSelectorCount ?? 0)),
+        statRow(":has()", String(metric?.modernSelectorCount ?? 0)),
+        statRow("Match", matchText),
+      ].join("");
+    },
+    disabledFor: (option) =>
+      !combinationExists(state.bundleVariant, option.sampleId, option.version),
+    onChange: (value) => {
+      state.cssVersion = value;
+      render();
+    },
+  });
 }
 
-function renderVersionMatchList(version, combinations) {
-  if (!combinations.length) {
-    return `<p class="empty-inline">No generated pages for this version.</p>`;
-  }
+function renderOpenButton() {
+  const combination = selectedCombination();
+  const customCss = cssMetric(state.cssSample, state.cssVersion);
+  const bundle = bundleMetric(state.captureId, state.bundleVariant);
+  const total = measuredTotalBytes(bundle, customCss);
 
-  return `<div class="version-matches">
-    ${combinations
-      .map((combination) => {
-        const text = selectorMatchText(
-          combination.captureId,
-          combination.bundleVariant ?? combination.htmlVariant,
-          version.sampleId,
-          version.version,
-        );
-
-        return `<a class="link-chip" href="/${escapeHtml(combination.matrixPath)}">
-          <span>${escapeHtml(bundleVariantLabel(combination.bundleVariant ?? combination.htmlVariant))}</span>
-          <strong>${escapeHtml(text)}</strong>
-        </a>`;
-      })
-      .join("")}
-  </div>`;
-}
-
-function renderHtmlVariantLinkList(combinations, emptyMessage) {
-  if (!combinations.length) {
-    return `<p class="empty-inline">${escapeHtml(emptyMessage)}</p>`;
-  }
-
-  return `<div class="link-list">
-    ${combinations
-      .map((combination) => {
-        const text = selectorMatchText(
-          combination.captureId,
-          combination.bundleVariant ?? combination.htmlVariant,
-          combination.cssSample,
-          combination.cssVersion,
-        );
-        const bundle = bundleMetric(
-          combination.captureId,
-          combination.bundleVariant ?? combination.htmlVariant,
-        );
-        const customCss = cssMetric(combination.cssSample, combination.cssVersion);
-        const totalSurface = measuredTotalBytes(bundle, customCss);
-        const surfaceText =
-          totalSurface == null ? "external CSS" : formatBytes(totalSurface);
-
-        return `<a class="link-chip" href="/${escapeHtml(combination.matrixPath)}" title="${escapeHtml(combination.matrixFileName)}">
-          <span>${escapeHtml(cssVersionLabel(combination))}</span>
-          <strong>${escapeHtml(`${text} · ${surfaceText}`)}</strong>
-        </a>`;
-      })
-      .join("")}
-  </div>`;
-}
-
-function capturePageCount(captureId) {
-  return String(
-    currentCombinations().filter((item) => item.captureId === captureId).length,
-  );
-}
-
-function renderMatrixRows(combinations) {
-  if (!combinations.length) {
-    controls.matrixRows.innerHTML =
-      '<tr><td colspan="5">Run pnpm generate.</td></tr>';
+  if (!combination) {
+    controls.openFixtureButton.href = "#";
+    controls.openFixtureButton.setAttribute("aria-disabled", "true");
+    controls.selectionStatus.textContent =
+      "This HTML and Custom CSS pairing is not generated.";
     return;
   }
 
-  controls.matrixRows.innerHTML = combinations
-    .map(
-      (item) => `<tr>
-        <td>${escapeHtml(humanize(item.captureId))}</td>
-        <td>${escapeHtml(bundleVariantLabel(item.bundleVariant ?? item.htmlVariant))}</td>
-        <td>${escapeHtml(cssCombinationLabel(item))}</td>
-        <td>${escapeHtml(item.matrixFileName)}</td>
-        <td><a href="/${escapeHtml(item.matrixPath)}">Open</a></td>
-      </tr>`,
-    )
-    .join("");
+  controls.openFixtureButton.href = `/${combination.matrixPath}`;
+  controls.openFixtureButton.removeAttribute("aria-disabled");
+  controls.selectionStatus.textContent = `${humanize(state.captureId)} / ${bundleVariantLabel(state.bundleVariant)} / ${cssVersionLabel(combination)} / ${formatBytes(total)}`;
 }
 
 function render() {
   ensureValidState();
-  renderSummaryCards();
   renderCaptureOptions();
+  renderHtmlVariantOptions();
   renderCssSampleOptions();
-  renderHtmlComparison();
-  renderCssVersionComparison();
-  renderMatrixRows(currentCombinations());
+  renderCssVersionOptions();
+  renderOpenButton();
 }
 
 async function loadReports() {
-  const [generation, compatibility, inventory, matches, manifest] =
-    await Promise.all([
-      fetchJson("/generated/reports/generation-summary.json").catch(() => null),
-      fetchJson("/generated/reports/compatibility-summary.json").catch(
-        () => null,
-      ),
-      fetchJson("/generated/reports/selector-inventory.json").catch(() => ({
-        samples: [],
-      })),
-      fetchJson("/generated/reports/selector-matches.json").catch(() => ({
-        matches: [],
-      })),
-      fetchJson("/generated/matrix/manifest.json").catch(() => ({
-        bundleVariants: [],
-        bundles: [],
-        captures: [],
-        combinations: [],
-        cssOptions: [],
-        cssSamples: [],
-      })),
-    ]);
+  const [generation, inventory, matches, manifest] = await Promise.all([
+    fetchJson("/generated/reports/generation-summary.json").catch(() => null),
+    fetchJson("/generated/reports/selector-inventory.json").catch(() => ({
+      samples: [],
+    })),
+    fetchJson("/generated/reports/selector-matches.json").catch(() => ({
+      matches: [],
+    })),
+    fetchJson("/generated/matrix/manifest.json").catch(() => ({
+      bundleVariants: [],
+      bundles: [],
+      captures: [],
+      combinations: [],
+      cssOptions: [],
+      cssSamples: [],
+    })),
+  ]);
 
   generationSummary = generation;
-  compatibilitySummary = compatibility;
   selectorInventory = inventory;
   selectorMatches = matches;
   matrixManifest = manifest;
-  ensureValidState();
   render();
 }
 

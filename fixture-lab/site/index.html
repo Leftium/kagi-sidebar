@@ -11,121 +11,58 @@
       <header class="page-header">
         <div>
           <p class="eyebrow">Kagi HTML/CSS Optimization Lab</p>
-          <h1>Bundle matrix</h1>
           <p class="lede">
             Compare Kagi HTML/CSS bundles against Custom CSS samples.
           </p>
         </div>
-
-        <dl class="dev-details">
-          <div>
-            <dt>Start</dt>
-            <dd><code>pnpm dev</code></dd>
-          </div>
-          <div>
-            <dt>URL</dt>
-            <dd><code>http://127.0.0.1:5173/</code></dd>
-          </div>
-        </dl>
       </header>
 
-      <section class="summary-grid" id="summary-cards" aria-label="Lab status">
-        <article class="summary-card">
-          <span class="summary-label">Status</span>
-          <strong>Loading</strong>
-        </article>
-      </section>
-
-      <section class="metric-guide" aria-label="Metric guide">
-        <div class="guide-grid">
-          <article>
-            <h2>Lower is usually better</h2>
-            <p>
-              Size, lines, selectors, Kagi hooks, private entries, structural
-              selectors, and <code>:has()</code> selectors all track maintenance
-              and fragility.
-            </p>
-          </article>
-          <article>
-            <h2>Hard gate</h2>
-            <p>
-              Backwards-compatible selector regressions should stay at
-              <strong>0</strong>.
-            </p>
-          </article>
-          <article>
-            <h2>Contextual</h2>
-            <p>
-              Matched selector counts should stay stable for compatibility.
-              A higher match count is not automatically better.
-            </p>
-          </article>
-        </div>
-      </section>
-
       <section class="control-panel" aria-label="Matrix controls">
-        <div class="section-heading">
-          <h2>Compare</h2>
-          <a class="button" href="/generated/matrix/manifest.json">
-            Open matrix manifest
-          </a>
-        </div>
-
         <div class="control-group">
           <div class="control-copy">
-            <h3>Capture</h3>
+            <span class="step-number">1</span>
+            <h2>Capture</h2>
           </div>
           <div id="capture-options" class="choice-grid"></div>
         </div>
 
         <div class="control-group">
           <div class="control-copy">
-            <h3>Custom CSS</h3>
+            <span class="step-number">2</span>
+            <h2>HTML variant</h2>
+          </div>
+          <div id="html-variant-options" class="choice-grid"></div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-copy">
+            <span class="step-number">3</span>
+            <h2>Custom CSS</h2>
           </div>
           <div id="css-sample-options" class="choice-grid"></div>
         </div>
-      </section>
 
-      <section class="comparison-section" aria-label="Bundle comparison">
-        <div class="section-heading">
-          <h2>Bundles</h2>
+        <div class="control-group">
+          <div class="control-copy">
+            <span class="step-number">4</span>
+            <h2>CSS variant</h2>
+          </div>
+          <div id="css-version-options" class="choice-grid"></div>
         </div>
-        <div id="html-comparison" class="comparison-grid"></div>
-      </section>
 
-      <section class="comparison-section" aria-label="CSS version comparison">
-        <div class="section-heading">
-          <h2>Custom CSS versions</h2>
-        </div>
-        <div id="css-version-comparison" class="comparison-grid"></div>
-      </section>
-
-      <section>
-        <div class="section-heading">
-          <h2>Generated combinations</h2>
-          <nav class="report-links" aria-label="Generated report links">
-            <a href="/generated/matrix/manifest.json">Matrix</a>
-            <a href="/generated/reports/generation-summary.json">Generation</a>
-            <a href="/generated/reports/compatibility-summary.json">Audit</a>
-          </nav>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Capture</th>
-                <th>Bundle</th>
-                <th>Custom CSS</th>
-                <th>File</th>
-                <th>Page</th>
-              </tr>
-            </thead>
-            <tbody id="matrix-rows">
-              <tr>
-                <td colspan="5">Run pnpm generate.</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="open-panel">
+          <a
+            class="button button-large"
+            id="open-fixture-button"
+            href="#"
+            target="_blank"
+            rel="noopener"
+          >
+            Open selected combination
+          </a>
+          <p id="selection-status" class="selection-status">
+            Load generated fixtures to open a page.
+          </p>
         </div>
       </section>
     </main>
