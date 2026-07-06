@@ -1,51 +1,74 @@
 /*
  * Optimized Kagi-authored search control fixture CSS.
  *
- * This is the lab-owned CSS Kagi would ship with the optimized search control
- * markup. User Custom CSS stays in fixture-lab/css-corpus/.
+ * The optimized markup exposes data-kagi-* hooks, but it keeps Kagi's internal
+ * dropdown/filter classes where they still map to the same component. That lets
+ * the captured Kagi-authored CSS own the visual styling.
  */
 
-[data-kagi-filter-menu] {
-  position: relative;
+[data-kagi-filter-panel] {
+  width: 100%;
 }
 
-[data-kagi-filter-menu] > summary {
-  cursor: pointer;
+[data-kagi-search-filters] > [data-kagi-filter],
+[data-kagi-search-filters] > [data-kagi-filter-action] {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+[data-kagi-filter="lens"] {
+  order: 1;
+}
+
+[data-kagi-filter="region"] {
+  order: 2;
+}
+
+[data-kagi-filter="sort"] {
+  order: 3;
+}
+
+[data-kagi-filter="time"] {
+  order: 4;
+}
+
+[data-kagi-filter="matching"] {
+  order: 5;
+}
+
+[data-kagi-filter-action="advanced-search"] {
+  order: 6;
+}
+
+[data-kagi-filter-action="clear-filters"] {
+  order: 7;
+}
+
+[data-kagi-filter-preview] {
+  display: none;
+}
+
+[data-kagi-filter-options] form:not(#mm-image) {
+  width: 100%;
+  margin: 0;
+}
+
+[data-kagi-filter-options] > ul,
+[data-kagi-filter-options] form > ul,
+[data-kagi-filter-options] [data-kagi-filter-section] {
+  margin: 0;
+  padding: 0;
   list-style: none;
 }
 
-[data-kagi-filter-menu] > summary::-webkit-details-marker {
-  display: none;
+button[data-kagi-filter-option].inner-label {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
 }
 
-[data-kagi-filter-menu]:not([open]) > [data-kagi-filter-options] {
-  display: none;
-}
-
-[data-kagi-filter-menu][open] {
-  z-index: 60;
-}
-
-[data-kagi-filter-menu][open] + [data-kagi-filter-preview] {
-  display: none;
-}
-
-[data-kagi-filter-menu][open] > [data-kagi-filter-options] {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 70;
-  width: min(320px, calc(100vw - 48px));
-  max-height: min(65vh, 520px);
-  box-sizing: border-box;
-  padding: 8px;
-  border: 1px solid var(--ksb-border, color-mix(in srgb, currentColor 16%, transparent));
-  border-radius: var(--ksb-radius, 6px);
-  background: var(--app-bg, Canvas);
-  box-shadow: 0 12px 28px color-mix(in srgb, black 18%, transparent);
-  overflow: auto;
-}
-
-[data-kagi-filter-options] > form {
-  margin: 0;
+button[data-kagi-filter-option].inner-label:focus-visible {
+  outline: var(--focus-outline);
 }

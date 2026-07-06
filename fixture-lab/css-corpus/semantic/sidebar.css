@@ -82,7 +82,7 @@
         > [data-kagi-filter-options] {
           margin-top: 0;
 
-          > ul > .no-hov-bg.sep {
+          .no-hov-bg.sep {
             display: none !important;
           }
         }
@@ -139,14 +139,6 @@
         cursor: pointer;
         font-size: 13px;
         line-height: 1.25;
-      }
-
-      summary[data-kagi-filter-trigger] {
-        list-style: none;
-
-        &::-webkit-details-marker {
-          display: none;
-        }
       }
 
       :is([data-kagi-filter-trigger] .textContent, [data-kagi-filter-label]) {
@@ -208,7 +200,6 @@
           [data-kagi-filter-trigger],
         [data-kagi-filter]:has(> [data-kagi-filter-toggle]:checked)
           [data-kagi-filter-trigger],
-        [data-kagi-filter-menu][open] > [data-kagi-filter-trigger],
         [data-kagi-filter-trigger]:hover,
         [data-kagi-filter-action] [data-kagi-action]:hover
       ) {
@@ -232,6 +223,10 @@
       [data-kagi-filter]:has(> [data-kagi-filter-toggle]:checked) {
         position: relative;
         z-index: 60;
+
+        > [data-kagi-filter-preview] {
+          display: none !important;
+        }
 
         > [data-kagi-filter-options] {
           top: calc(100% + 4px) !important;
@@ -286,7 +281,7 @@
         > [data-kagi-filter-options] {
           margin-top: 2px;
 
-          > ul > li:nth-child(n + 6) {
+          :is(.no-hov-bg, [data-kagi-filter-section="custom-range"]) {
             display: none !important;
           }
         }
@@ -357,7 +352,10 @@
         margin-top: 3px;
       }
 
-      [data-kagi-region-list] {
+      [data-kagi-filter="region"]:has(> [data-kagi-filter-toggle]):not(
+          :has(> [data-kagi-filter-toggle]:checked)
+        )
+        [data-kagi-region-list] {
         width: 100%;
         margin-top: 0 !important;
         padding-top: 0 !important;
@@ -396,10 +394,7 @@
         )
         > [data-kagi-filter-options]
         [data-kagi-filter-option],
-      [data-kagi-filter-preview] [data-kagi-filter-option],
-      [data-kagi-filter-menu][open]
-        > [data-kagi-filter-options]
-        [data-kagi-filter-option] {
+      [data-kagi-filter-preview] [data-kagi-filter-option] {
         display: flex !important;
         align-items: center;
         width: 100% !important;
@@ -437,10 +432,7 @@
         )
         > [data-kagi-filter-options]
         [data-kagi-filter-option],
-      [data-kagi-filter-preview] [data-kagi-filter-option],
-      [data-kagi-filter-menu][open]
-        > [data-kagi-filter-options]
-        [data-kagi-filter-option] {
+      [data-kagi-filter-preview] [data-kagi-filter-option] {
         display: block !important;
         padding-right: 22px !important;
         white-space: nowrap !important;
@@ -473,8 +465,7 @@
 
       :is(
         [data-kagi-filter="time"]:not(:has(> [data-kagi-filter-toggle]:checked))
-          input[type="date"],
-        [data-kagi-region-search]
+          input[type="date"]
       ) {
         width: 100% !important;
         min-width: 0;
@@ -487,35 +478,6 @@
         background: var(--input-bg, var(--app-bg));
         color: var(--app-text);
         font-size: 12px;
-      }
-
-      [data-kagi-filter-menu] {
-        position: relative;
-        width: 100%;
-
-        &[open] {
-          z-index: 60;
-
-          + [data-kagi-filter-preview] {
-            display: none !important;
-          }
-
-          > [data-kagi-filter-options] {
-            position: absolute !important;
-            top: calc(100% + 4px);
-            left: 0;
-            z-index: 70;
-            width: min(320px, calc(100vw - 48px)) !important;
-            max-height: min(65vh, 520px) !important;
-            box-sizing: border-box;
-            padding: 8px !important;
-            border: 1px solid var(--ksb-border) !important;
-            border-radius: var(--ksb-radius);
-            background: var(--app-bg) !important;
-            box-shadow: 0 12px 28px color-mix(in srgb, black 18%, transparent) !important;
-            overflow: auto !important;
-          }
-        }
       }
 
       [data-kagi-filter-action] {

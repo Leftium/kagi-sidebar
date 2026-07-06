@@ -760,6 +760,18 @@ function removeClasses(node, classNames) {
   }
 }
 
+function addClasses(node, classNames) {
+  const current = new Set(
+    (node.attr("class") ?? "").split(/\s+/).filter(Boolean),
+  );
+
+  for (const className of classNames) {
+    current.add(className);
+  }
+
+  node.attr("class", [...current].join(" "));
+}
+
 function renameOptimizedFilterToggles($) {
   for (const [filterName, nextId] of optimizedFilterToggleIds) {
     const toggle = $(`[data-kagi-filter-toggle="${filterName}"]`).first();
@@ -778,12 +790,9 @@ function renameOptimizedFilterToggles($) {
 }
 
 function optimizeFilterShell($) {
-  const filterPanel = $("[data-kagi-filter-panel]").first();
   const filterForm = $("[data-kagi-search-filters]").first();
 
-  removeClasses(filterPanel, ["_0_filters-panel"]);
   filterForm.removeAttr("id");
-  removeClasses(filterForm, ["sidebar-filter-nav-form"]);
   renameOptimizedFilterToggles($);
 }
 
@@ -825,8 +834,65 @@ function buildGetForm($, state, attrs = {}) {
   return form;
 }
 
-function buildFilterOptionsPanel($, form) {
-  return $("<div></div>").attr("data-kagi-filter-options", "").append(form);
+function buildFilterToggle($, filterName) {
+  return $("<input>").attr({
+    type: "checkbox",
+    id: optimizedFilterToggleIds.get(filterName),
+    class: "dd-toggle",
+    "data-kagi-filter-toggle": filterName,
+  });
+}
+
+function buildCaret($) {
+  return $("<i></i>")
+    .addClass("caret")
+    .append($("<svg></svg>").append($("<use>").attr("href", "#caret_down")));
+}
+
+function buildFilterLabel($, filterName, labelText) {
+  const label = $("<label></label>").attr({
+    class: "dd-toggle-label",
+    for: optimizedFilterToggleIds.get(filterName),
+    "data-header": labelText,
+    "aria-expanded": "false",
+    "data-kagi-filter-trigger": "",
+  });
+  const text = $("<div></div>")
+    .addClass("textContent")
+    .attr("data-kagi-filter-label", "")
+    .text(labelText);
+
+  label.append(text, buildCaret($));
+  return label;
+}
+
+function buildFilterOptionsPanel($, content, attrs = {}) {
+  return $("<div></div>")
+    .attr({
+      "data-kagi-filter-options": "",
+      ...attrs,
+    })
+    .addClass("dd-list")
+    .append(content);
+}
+
+function rebuildFilterShell(
+  $,
+  filter,
+  filterName,
+  labelText,
+  panel,
+  extras = [],
+) {
+  addClasses(filter, ["dropdown", "filter-item"]);
+  filter
+    .empty()
+    .append(
+      buildFilterToggle($, filterName),
+      buildFilterLabel($, filterName, labelText),
+      panel,
+      ...extras,
+    );
 }
 
 function filterTriggerText(filter, fallback) {
@@ -837,22 +903,6 @@ function filterTriggerText(filter, fallback) {
     normalizeText(filter.find("[data-kagi-filter-trigger]").text()) ||
     fallback
   );
-}
-
-function buildFilterSummary($, labelText) {
-  const summary = $("<summary></summary>")
-    .attr("data-kagi-filter-trigger", "")
-    .attr("aria-expanded", "false");
-  const label = $("<span></span>")
-    .attr("data-kagi-filter-label", "")
-    .text(labelText);
-  const caret = $("<span></span>")
-    .attr("aria-hidden", "true")
-    .attr("data-kagi-filter-caret", "")
-    .text("\u25be");
-
-  summary.append(label, caret);
-  return summary;
 }
 
 function filterOptionButtonFromLink($, link, fallbackName) {
@@ -875,13 +925,51 @@ function filterOptionButtonFromLink($, link, fallbackName) {
     .attr("name", name)
     .attr("value", value)
     .attr("data-kagi-filter-option", "")
+    .addClass("inner-label")
     .text(normalizeText(source.text()));
+
+  if (source.hasClass("filter-checkbox")) {
+    button.addClass("filter-checkbox");
+  }
 
   if (source.attr("aria-current") != null) {
     button.attr("aria-current", source.attr("aria-current"));
   }
 
   return button;
+}
+
+function buildFilterOptionItem($, button, source) {
+  const item = $("<li></li>");
+  const sourceItem = source.closest("li");
+
+  if (sourceItem.hasClass("ul")) {
+    item.addClass("ul");
+  }
+
+  if (sourceItem.attr("data-recent") != null) {
+    item.attr({
+      "data-recent": "",
+      "data-kagi-filter-recent": "",
+    });
+  }
+
+  item.append(button);
+  return item;
+}
+
+function appendFilterOptionItems($, parent, links, fallbackName, decorate) {
+  links.each((_, link) => {
+    const source = $(link);
+    const button = filterOptionButtonFromLink($, link, fallbackName);
+
+    if (!button) {
+      return;
+    }
+
+    decorate?.(button, source);
+    parent.append(buildFilterOptionItem($, button, source));
+  });
 }
 
 function appendFilterOptionButtons($, parent, links, fallbackName, decorate) {
@@ -895,6 +983,32 @@ function appendFilterOptionButtons($, parent, links, fallbackName, decorate) {
     decorate?.(button, $(link));
     parent.append(button);
   });
+}
+
+function buildSeparator($) {
+  return $("<li></li>").addClass("no-hov-bg sep");
+}
+
+function buildTimeCustomDateForm($, state, timeFilter) {
+  const sourceForm = timeFilter.find("#mm-image").first();
+
+  if (!sourceForm.length) {
+    return $();
+  }
+
+  const form = sourceForm.clone();
+
+  form.attr({
+    "data-kagi-time-form": "custom-range",
+    "data-kagi-filter-section": "custom-range",
+  });
+  appendHiddenInputs($, form, state.params);
+  form
+    .find('button[type="submit"], button:not([type])')
+    .attr("type", "submit")
+    .attr("data-kagi-action", "date-range-search");
+
+  return form;
 }
 
 function optimizeMatchingFilter($) {
@@ -917,13 +1031,26 @@ function optimizeMatchingFilter($) {
   ];
   const state = filterFormState(optionLinks, optionNames);
   const form = buildGetForm($, state, {
-    "data-kagi-filter-options": "",
     "data-kagi-matching-form": "",
   });
+  const list = $("<ul></ul>");
 
-  appendFilterOptionButtons($, form, optionLinks);
-  matchingFilter.empty().append(form);
-  removeClasses(matchingFilter, ["dropdown", "filter-item"]);
+  optionLinks.each((index, link) => {
+    if (index > 0) {
+      list.append(buildSeparator($));
+    }
+
+    appendFilterOptionItems($, list, $(link));
+  });
+
+  form.append(list);
+  rebuildFilterShell(
+    $,
+    matchingFilter,
+    "matching",
+    filterTriggerText(matchingFilter, "Options"),
+    buildFilterOptionsPanel($, form, { "data-name": "options" }),
+  );
 }
 
 function optimizeTimeFilter($) {
@@ -937,44 +1064,42 @@ function optimizeTimeFilter($) {
   }
 
   const state = filterFormState(optionLinks, ["dr", "from_date", "to_date"]);
-  const details = $("<details></details>").attr("data-kagi-filter-menu", "");
-  const form = buildGetForm($, state, {
+  const presetForm = buildGetForm($, state, {
     "data-kagi-time-form": "",
   });
-  const presetSection = $("<div></div>").attr(
-    "data-kagi-filter-section",
-    "presets",
-  );
-  const customDateControls = timeFilter
-    .find(".custom-date-range, .img-min-max-sub")
-    .clone();
+  const list = $("<ul></ul>");
+  const presetSection = $("<div></div>")
+    .attr({
+      "data-kagi-filter-section": "presets",
+      "data-name": "dr",
+    })
+    .addClass("dd-section");
+  const customDateForm = buildTimeCustomDateForm($, state, timeFilter);
   const preview = buildGetForm($, state, {
     "data-kagi-filter-preview": "",
     "data-kagi-time-preview": "",
   });
 
-  appendFilterOptionButtons($, presetSection, optionLinks, "dr");
-  form.append(presetSection);
+  appendFilterOptionItems($, presetSection, optionLinks, "dr");
+  presetForm.append(presetSection);
+  list.append(presetForm);
 
-  if (customDateControls.length) {
-    const customSection = $("<div></div>").attr(
-      "data-kagi-filter-section",
-      "custom-range",
-    );
+  if (customDateForm.length) {
+    const customSection = $("<li></li>").addClass("no-hov-bg");
 
-    customDateControls
-      .find('button[type="submit"], button:not([type])')
-      .attr("type", "submit")
-      .attr("data-kagi-action", "date-range-search");
-    customSection.append(customDateControls);
-    form.append(customSection);
+    customSection.append(customDateForm);
+    list.append(buildSeparator($), customSection);
   }
 
   appendFilterOptionButtons($, preview, optionLinks.slice(0, 5), "dr");
-  details.append(buildFilterSummary($, filterTriggerText(timeFilter, "Time")));
-  details.append(buildFilterOptionsPanel($, form));
-  timeFilter.empty().append(details, preview);
-  removeClasses(timeFilter, ["dropdown", "filter-item"]);
+  rebuildFilterShell(
+    $,
+    timeFilter,
+    "time",
+    filterTriggerText(timeFilter, "Time"),
+    buildFilterOptionsPanel($, list, { "data-name": "dr" }),
+    [preview],
+  );
 }
 
 function optimizeSortFilter($) {
@@ -986,20 +1111,23 @@ function optimizeSortFilter($) {
   }
 
   const state = filterFormState(optionLinks, ["order", "dir"]);
-  const details = $("<details></details>").attr("data-kagi-filter-menu", "");
   const form = buildGetForm($, state, {
     "data-kagi-sort-form": "",
   });
+  const list = $("<ul></ul>");
+  let appendedSection = false;
 
   sortFilter.find("[data-kagi-filter-section]").each((_, section) => {
     const sourceSection = $(section);
     const sectionName = sourceSection.attr("data-kagi-filter-section");
-    const nextSection = $("<div></div>").attr(
-      "data-kagi-filter-section",
-      sectionName ?? "",
-    );
+    const nextSection = $("<div></div>")
+      .addClass(sourceSection.attr("class") ?? "dd-section")
+      .attr({
+        "data-kagi-filter-section": sectionName ?? "",
+        "data-name": sectionName ?? "",
+      });
 
-    appendFilterOptionButtons(
+    appendFilterOptionItems(
       $,
       nextSection,
       sourceSection.find("[data-kagi-filter-option][data-name]"),
@@ -1007,18 +1135,27 @@ function optimizeSortFilter($) {
     );
 
     if (nextSection.children().length) {
-      form.append(nextSection);
+      if (appendedSection) {
+        list.append(buildSeparator($));
+      }
+
+      list.append(nextSection);
+      appendedSection = true;
     }
   });
 
-  if (!form.find("[data-kagi-filter-option]").length) {
-    appendFilterOptionButtons($, form, optionLinks);
+  if (!list.find("[data-kagi-filter-option]").length) {
+    appendFilterOptionItems($, list, optionLinks);
   }
 
-  details.append(buildFilterSummary($, filterTriggerText(sortFilter, "Sort")));
-  details.append(buildFilterOptionsPanel($, form));
-  sortFilter.empty().append(details);
-  removeClasses(sortFilter, ["dropdown", "filter-item"]);
+  form.append(list);
+  rebuildFilterShell(
+    $,
+    sortFilter,
+    "sort",
+    filterTriggerText(sortFilter, "Sort"),
+    buildFilterOptionsPanel($, form),
+  );
 }
 
 function regionButtonFromLink($, link) {
@@ -1032,6 +1169,7 @@ function regionButtonFromLink($, link) {
     .attr("value", value)
     .attr("data-kagi-filter-option", "")
     .attr("data-kagi-region-option", "")
+    .addClass("inner-label")
     .text(normalizeText(source.text()));
 
   if (source.attr("aria-current") != null) {
@@ -1045,43 +1183,81 @@ function regionButtonFromLink($, link) {
   return button;
 }
 
+function buildRegionSearchClear($) {
+  return $("<i></i>")
+    .addClass("_0_k_ui_dropdown_sort_list_filter_clear")
+    .append(
+      $("<svg></svg>")
+        .attr({
+          width: "24",
+          height: "24",
+          viewBox: "0 0 24 24",
+          xmlns: "http://www.w3.org/2000/svg",
+        })
+        .append(
+          $("<path>").attr({
+            d: "M6 6L18 18M6 18L18 6",
+            stroke: "currentColor",
+            "stroke-width": "1.5",
+            "stroke-linecap": "round",
+            "stroke-linejoin": "round",
+          }),
+        ),
+    );
+}
+
+function buildRegionOptionItem($, link) {
+  const source = $(link);
+  const sourceItem = source.closest("li");
+  const item = $("<li></li>");
+
+  if (sourceItem.attr("class")) {
+    item.attr("class", sourceItem.attr("class"));
+  }
+
+  if (sourceItem.attr("data-recent") != null) {
+    item.attr({
+      "data-recent": "",
+      "data-kagi-filter-recent": "",
+    });
+  }
+
+  item.append(regionButtonFromLink($, link));
+  return item;
+}
+
 function buildRegionForm($, state, regionLinks) {
   const form = $("<form></form>")
     .attr("method", "get")
     .attr("action", state.action)
     .attr("data-kagi-region-form", "");
-  const search = $("<input>").attr({
-    type: "search",
-    placeholder: "Search region...",
-    "data-kagi-region-search": "",
-  });
-  const list = $("<div></div>").attr("data-kagi-region-list", "");
+  const list = $("<ul></ul>");
+  const search = $("<div></div>")
+    .addClass("list_filter_wrpr")
+    .attr("data-kagi-filter-search", "")
+    .append(
+      $("<input>").attr({
+        class: "list_filter _0_k_ui_dropdown_sort_list_input",
+        type: "search",
+        placeholder: "Search region...",
+        "data-kagi-region-search": "",
+      }),
+      buildRegionSearchClear($),
+    );
+  const regions = $("<div></div>")
+    .addClass("_0_data_sort_list")
+    .attr("data-kagi-region-list", "");
 
   appendHiddenInputs($, form, state.params);
-  form.append(search);
+  list.append(search);
 
   regionLinks.each((_, link) => {
-    list.append(regionButtonFromLink($, link));
+    regions.append(buildRegionOptionItem($, link));
   });
 
+  list.append(regions);
   form.append(list);
   return form;
-}
-
-function buildRegionPreview($, state, recentRegionLinks) {
-  const preview = $("<form></form>")
-    .attr("method", "get")
-    .attr("action", state.action)
-    .attr("data-kagi-filter-preview", "")
-    .attr("data-kagi-region-preview", "");
-
-  appendHiddenInputs($, preview, state.params);
-
-  recentRegionLinks.each((_, link) => {
-    preview.append(regionButtonFromLink($, link));
-  });
-
-  return preview;
 }
 
 function optimizeRegionFilter($) {
@@ -1096,20 +1272,13 @@ function optimizeRegionFilter($) {
 
   const state = regionFormState(regionLinks);
   const triggerText = filterTriggerText(regionFilter, "Region");
-  const details = $("<details></details>").attr("data-kagi-filter-menu", "");
-  const recentRegionLinks = regionLinks
-    .filter((_, link) => $(link).closest("li").attr("data-recent") != null)
-    .slice(0, 4);
+  const panel = buildFilterOptionsPanel(
+    $,
+    buildRegionForm($, state, regionLinks),
+    { "data-name": "r" },
+  ).addClass("_0_data_list");
 
-  details.append(buildFilterSummary($, triggerText));
-  details.append(
-    buildFilterOptionsPanel($, buildRegionForm($, state, regionLinks)),
-  );
-
-  regionFilter
-    .empty()
-    .append(details, buildRegionPreview($, state, recentRegionLinks));
-  removeClasses(regionFilter, ["dropdown", "filter-item"]);
+  rebuildFilterShell($, regionFilter, "region", triggerText, panel);
 }
 
 function buildOptimizedHtml(html, capture) {
