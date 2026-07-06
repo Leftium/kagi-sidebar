@@ -10,7 +10,7 @@
       "functional_layout": true,
       "local_original": "fixture-lab/css-corpus/original/sidebar.css",
       "local_semantic": "fixture-lab/css-corpus/semantic/sidebar.css",
-      "notes": "Initial corpus sample copied from the distributable sidebar CSS. Semantic rewrite targets the proposed data-kagi-* filter hooks."
+      "notes": "Initial corpus sample copied from the distributable sidebar CSS. Semantic rewrite is experimental and should be treated as optimized-DOM or diagnostic bridge evidence, not as a required backwards-compatible proof."
     }
   ]
 }

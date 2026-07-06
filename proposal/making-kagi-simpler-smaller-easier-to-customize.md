@@ -5,15 +5,15 @@ Status: Draft proposal
 Audience: Kagi engineers, designers, and frontend maintainers.
 
 One sentence: Kagi can simplify its standard frontend output and make
-functional Custom CSS safer by exposing stable semantic hooks for pages,
-controls, options, states, and layout slots.
+functional Custom CSS safer by separating additive semantic hooks, semantic
+component structure, and Kagi-owned layout modes.
 
 This does not assume Kagi should ship a sidebar. The sidebar is only the
 motivating case study.
 
 Companion contract draft:
 [`kagi-semantic-dom-contract.md`](kagi-semantic-dom-contract.md) names the
-semantic DOM hooks that the fixture lab should prove.
+semantic DOM hooks and component contracts that the fixture lab should prove.
 
 ## Summary
 
@@ -43,6 +43,12 @@ frontend contracts more semantic and reusable:
 - Expose layout variables so Kagi CSS and user CSS do not need to target private
   page internals.
 
+The sidebar case study also shows a boundary. Additive semantic hooks make old
+markup easier to target, but they do not make today's dropdown internals behave
+like a future sidebar component. Layout-changing Custom CSS still has to reverse
+positioning, hidden-state rules, promoted options, previews, and popover sizing
+unless Kagi owns that component structure or exposes a native layout mode.
+
 This proposal allows breaking compatibility with existing private-selector
 Custom CSS. The goal is a cleaner future contract, not preserving every
 accidental selector dependency.
@@ -52,6 +58,9 @@ accidental selector dependency.
 - Optimize Kagi's standard HTML/CSS output first, even if no Custom CSS is used.
 - Keep at least Kagi's current browser support level for the main refactor.
 - Preserve no-JS/basic search behavior as a first-class output path.
+- Distinguish additive hooks from semantic component structure. The former is a
+  migration aid; the latter is where output simplification and easier Custom CSS
+  become real.
 - Keep modern CSS enhancements optional and conservative.
 - Avoid making popover, anchor positioning, or browser-imported top-level
   `await` core requirements.
@@ -378,6 +387,13 @@ Estimated Custom CSS reduction if the visual design stays roughly the same:
 | Attributes plus dropdown hooks plus layout variables |                   3-5 KB |    70-83% | Custom CSS mainly sets order, width, and visual style    |
 | Native Kagi sidebar placement option                 |                 0.5-2 KB |      90%+ | Custom CSS becomes preference styling                    |
 
+The upper rows are not a promise that selector hooks alone remove the sidebar
+complexity. The fixture lab found the opposite: once Custom CSS has to move
+controls and reshape dropdown behavior, the DOM and Kagi-authored CSS need to
+own component anatomy such as trigger, preview, popover, list, option, search,
+and action. Otherwise the semantic CSS becomes another compatibility shim over
+the old internals.
+
 The standard-output savings are separate from Custom CSS savings. The sampled
 Region filter alone shows that semantic form-oriented markup can remove tens of
 kilobytes from one repeated option list while preserving no-JS behavior.
@@ -415,9 +431,11 @@ Recommended path:
 2. Publish a selector mapping from common private selectors to semantic hooks.
 3. Keep a short-term compatibility shim for the most common old selectors when
    that does not require preserving the old DOM shape.
-4. Test representative community themes against current fixtures and rewritten
+4. Move layout-changing component experiments, such as a filter sidebar, to an
+   optimized DOM that owns component structure.
+5. Test representative community themes against current fixtures and rewritten
    fixtures.
-5. Offer a best-effort migration tool for safe selector rewrites. Flag structural
+6. Offer a best-effort migration tool for safe selector rewrites. Flag structural
    selectors such as `:nth-child`, sibling hacks, deep SVG paths, and private
    layout IDs for manual review.
 
@@ -437,7 +455,10 @@ P3: Reduce repeated action URLs where standard forms can preserve behavior.
 
 P4: Add layout variables or a documented filter-panel placement contract.
 
-P5: Publish a Custom CSS migration map and test it against representative
+P5: Define semantic component anatomy for high-impact controls, starting with
+Region: trigger, preview, popover, search, list, option, section, and action.
+
+P6: Publish a Custom CSS migration map and test it against representative
 community examples.
 
 ## Acceptance Criteria
@@ -462,17 +483,24 @@ community examples.
 
 1. Capture sanitized fixtures for `/search` and `/html/search` with a neutral
    query and `no_css=1`.
-2. Rewrite only the search filter shell into a compatible semantic form-based
-   component.
-3. Recreate Kagi's current horizontal layout and the sidebar layout against the
-   rewritten shell.
-4. Measure HTML bytes, CSS bytes, gzip/Brotli sizes, selector count,
+2. Add semantic hooks to the current DOM and prove the existing sidebar Custom
+   CSS still works against the backwards-compatible fixture.
+3. Rewrite one optimized filter component, starting with Region, so the markup
+   owns trigger, preview, popover, search, list, option, and action structure.
+4. Recreate Kagi's current horizontal layout and a sidebar layout against that
+   optimized component contract.
+5. Measure HTML bytes, CSS bytes, gzip/Brotli sizes, selector count,
    `!important` count, ID selector count, and no-JS behavior.
-5. Run representative community Custom CSS against current and rewritten
+6. Run representative community Custom CSS against current and rewritten
    fixtures. Classify what still works, what can be migrated mechanically, and
    what needs manual review.
-6. Repeat for Images, Videos, News, and Podcasts only after Web search proves
+7. Repeat for Images, Videos, News, and Podcasts only after Web search proves
    the pattern.
+
+Generated Kagi output is enough for this outside-in POC, but it is not the ideal
+place to prove exact visual parity. Kagi source files would likely make the
+optimized refactor easier because the component templates, runtime assumptions,
+and authored CSS ownership would be visible.
 
 ## References
 

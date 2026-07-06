@@ -1338,6 +1338,31 @@ function validBundleVariantsForCssOption(cssOption) {
   return validBundleVariantsForCssVersion(cssOption.version);
 }
 
+function proofRoleForCombination(bundleVariant, cssOption) {
+  if (cssOption.sampleId === "none") {
+    return "baseline";
+  }
+
+  if (
+    bundleVariant === "backwards-compatible" &&
+    cssOption.version === "semantic"
+  ) {
+    return "diagnostic";
+  }
+
+  return "primary";
+}
+
+function proofDescriptionForRole(role) {
+  const descriptions = {
+    baseline: "No Custom CSS baseline.",
+    diagnostic: "Diagnostic bridge, not primary proposal evidence.",
+    primary: "Primary proof matrix.",
+  };
+
+  return descriptions[role] ?? "";
+}
+
 function plannedCombinations(samples, captures, bundles) {
   if (captures.length === 0) {
     return [];
@@ -1349,6 +1374,7 @@ function plannedCombinations(samples, captures, bundles) {
     cssOptions.flatMap((cssOption) =>
       validBundleVariantsForCssOption(cssOption).map((bundleVariant) => {
         const bundle = bundles.find((item) => item.id === bundleVariant);
+        const proofRole = proofRoleForCombination(bundleVariant, cssOption);
         const matrixFileName = `${capture.id}__${bundleVariant}__${cssOption.sampleId}__${cssOption.version}.html`;
         const htmlFilePath = path.join(
           generatedRoot,
@@ -1377,6 +1403,8 @@ function plannedCombinations(samples, captures, bundles) {
           cssVersion: cssOption.version,
           cssPath: cssOption.path,
           cssBuiltIn: cssOption.builtIn,
+          proofRole,
+          proofDescription: proofDescriptionForRole(proofRole),
           matrixFileName,
           matrixPath: relativeProjectPath(matrixFilePath),
         };

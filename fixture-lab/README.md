@@ -28,7 +28,10 @@ path. The picker opens at `http://127.0.0.1:5173/`.
 ## Current Slice
 
 This slice tracks the local sidebar CSS as the first corpus sample and two
-redacted source captures:
+redacted source captures. The active plan is now narrowed by
+`../specs/20260706T163940-semantic-sidebar-evaluation.md`: use the lab for
+compatibility testing and optimized component experiments, not as proof that
+semantic sidebar CSS should support today's dropdown DOM.
 
 - `captures/original/search.html`: settled JS-enhanced `/search` DOM.
 - `captures/original/search.domain-info.json`: domain-info metadata captured
@@ -69,14 +72,26 @@ state classes, and transitions.
 The sidebar corpus includes:
 
 - `css-corpus/original/sidebar.css`: the current distributable sidebar CSS.
-- `css-corpus/semantic/sidebar.css`: a semantic rewrite targeting proposed
-  `data-kagi-*` filter hooks.
+- `css-corpus/semantic/sidebar.css`: an experimental semantic rewrite. Treat it
+  as optimized/breaking evidence or diagnostic bridge work, not as a required
+  backwards-compatible proof.
 - `kagi-authored-css/optimized/search-controls.css`: lab-owned optimized Kagi
   CSS for the optimized search-control bundle.
 
-The optimized bundle currently simplifies the filter shell plus Matching, Time,
-Region, and Sort controls. Public CSS corpus expansion and screenshot
-automation are still pending.
+The optimized bundle currently sketches simplified filter controls. The next
+honest proof should start with one component, preferably Region, where the DOM
+owns trigger, preview, popover, search, list, option, section, and action
+structure. Public CSS corpus expansion and screenshot automation are still
+pending.
+
+Primary matrix combinations:
+
+- `original + sidebar.original.css`
+- `backwards-compatible + sidebar.original.css`
+- `optimized + semantic Region/filter CSS`
+
+`backwards-compatible + sidebar.semantic.css` may remain useful as a diagnostic
+bridge, but it should not be presented as proposal evidence.
 
 Generated pages rewrite Kagi root-relative stylesheet and image asset URLs to
 `https://kagi.com/...` so matrix pages render under Vite. Source captures stay

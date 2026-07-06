@@ -107,7 +107,7 @@ function captureDescription(captureId) {
 function htmlVariantDescription(bundleVariant) {
   const descriptions = {
     "backwards-compatible": "Captured DOM plus proposed semantic hooks.",
-    optimized: "Rewritten DOM using the proposed search-result structure.",
+    optimized: "Rewritten DOM using the proposed semantic search structure.",
     original: "Captured Kagi markup with private classes and IDs.",
   };
 
@@ -121,10 +121,21 @@ function cssVersionDescription(option) {
 
   const descriptions = {
     original: "Targets Kagi's private classes and IDs.",
-    semantic: "Targets proposed data-kagi hooks.",
+    semantic: "Targets optimized semantic component hooks.",
   };
 
   return descriptions[option.cssVersion ?? option.version] ?? "";
+}
+
+function proofRoleLabel(value) {
+  const labels = {
+    baseline: "Baseline",
+    diagnostic: "Diagnostic",
+    "not-generated": "Not generated",
+    primary: "Primary",
+  };
+
+  return labels[value] ?? humanize(value);
 }
 
 function formatBytes(bytes) {
@@ -555,8 +566,18 @@ function renderCssVersionOptions() {
         option.sampleId,
         option.version,
       );
+      const combination = findCombination(
+        state.captureId,
+        state.bundleVariant,
+        option.sampleId,
+        option.version,
+      );
 
       return [
+        statRow(
+          "Role",
+          proofRoleLabel(combination?.proofRole ?? "not-generated"),
+        ),
         statRow("Source", formatBytes(metric?.sourceBytes ?? metric?.bytes)),
         statRow(
           "Minified",
@@ -595,7 +616,13 @@ function renderOpenButton() {
 
   controls.openFixtureButton.href = `/${combination.matrixPath}`;
   controls.openFixtureButton.removeAttribute("aria-disabled");
-  controls.selectionStatus.textContent = `${humanize(state.captureId)} / ${bundleVariantLabel(state.bundleVariant)} / ${cssVersionLabel(combination)} / ${formatBytes(total)}`;
+  controls.selectionStatus.textContent = [
+    humanize(state.captureId),
+    bundleVariantLabel(state.bundleVariant),
+    cssVersionLabel(combination),
+    proofRoleLabel(combination.proofRole),
+    formatBytes(total),
+  ].join(" / ");
 }
 
 function render() {

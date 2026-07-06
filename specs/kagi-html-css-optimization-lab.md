@@ -1,10 +1,11 @@
 # Kagi HTML/CSS Optimization Lab
 
 **Date**: 2026-07-06
-**Status**: Draft
+**Status**: Background
 **Owner**: Project maintainer
 **Branch**: local planning
 **Supersedes**: Stashed generated fixture experiment from 2026-07-05
+**Superseded by**: `specs/20260706T163940-semantic-sidebar-evaluation.md` for the active narrowed slice
 
 ## One Sentence
 
@@ -13,15 +14,16 @@ Kagi HTML/CSS bundles against original and semantic Kagi Custom CSS.
 
 ## Overview
 
-This spec replaces the first generated-example attempt with a cleaner evidence
-pipeline. The new pipeline should make compatibility claims measurable:
-original Custom CSS should keep working on original and backwards-compatible
-bundles, while semantic Custom CSS should work on the optimized bundle.
+This spec records the broad fixture-lab design. The active narrowed plan now
+lives in `specs/20260706T163940-semantic-sidebar-evaluation.md`: keep the lab
+useful for compatibility testing, but stop treating a semantic sidebar
+stylesheet on backwards-compatible markup as a primary proof.
 
 ## How To Read This Spec
 
 Read first:
 
+- Current Status
 - Problems With The Previous Attempt
 - Target Shape
 - Project Structure
@@ -40,6 +42,28 @@ Read when changing the architecture:
 Historical context:
 
 - Rejected Alternatives
+
+## Current Status
+
+The fixture lab remains active, but its role is narrower than this original
+spec proposed.
+
+Keep:
+
+- `original`, `backwards-compatible`, and `optimized` as bundle names.
+- `backwards-compatible` as additive semantic hooks plus current private DOM.
+- `optimized` as the breaking space for semantic component structure.
+- Selector audits, byte metrics, and generated matrix pages.
+
+Change:
+
+- Do not make `backwards-compatible + sidebar.semantic.css` a headline proof.
+  It can exist as a diagnostic bridge, but the experiment showed that this path
+  recreates the same fragile compatibility shim under semantic names.
+- Treat semantic sidebar CSS as an optimized-DOM proof. Prefer proving one
+  filter component, such as Region, before claiming a full sidebar.
+- Keep byte savings as supporting evidence. The stronger claim is
+  maintainability and safer functional Custom CSS.
 
 ## Problems With The Previous Attempt
 
@@ -90,10 +114,20 @@ different claims in one set of pages.
    too large to review directly. The next system needs normalized HTML and CSS
    plus focused semantic summaries.
 
+7. The semantic sidebar bridge proved the wrong claim.
+
+   A later pass tried to make `sidebar.semantic.css` work against additive hooks
+   on the current dropdown DOM. The rendered fixtures broke around sidebar and
+   popover layout. The useful finding was not the broken CSS itself; it was that
+   semantic hooks and semantic component structure are different contracts.
+   Additive hooks make selectors clearer, but they do not make Kagi's current
+   dropdown internals own sidebar previews, promoted options, popover sizing,
+   or open-state layout.
+
 ## Target Shape
 
 The fixture lab should produce three Kagi bundle variants from the same captured
-page.
+page, but each variant has a narrower job than the first plan implied.
 
 ```text
 captured Kagi HTML
@@ -106,8 +140,8 @@ Kagi-authored CSS
   -> local lab-owned optimized CSS for optimized
 
 real Custom CSS corpus
-  -> original CSS
-  -> semantic CSS, only when needed
+  -> original CSS for compatibility checks
+  -> semantic CSS only for optimized component proofs
 
 bundle variant x Custom CSS sample
   -> generated matrix pages
@@ -116,9 +150,13 @@ bundle variant x Custom CSS sample
   -> byte and complexity measurements
 ```
 
-The sidebar remains the first functional Custom CSS case. Other community CSS
-examples should be used to measure breakage risk and selector compatibility, not
-to prove functional layout changes they were never designed to make.
+The sidebar remains the first functional Custom CSS case. The current
+distributable sidebar CSS should be tested against original and
+backwards-compatible fixtures. Semantic sidebar CSS belongs in optimized,
+breaking fixtures where the markup owns the component behavior being styled.
+Other community CSS examples should be used to measure breakage risk and
+selector compatibility, not to prove functional layout changes they were never
+designed to make.
 
 ## Project Structure
 
@@ -288,17 +326,18 @@ Each CSS sample gets metadata:
 }
 ```
 
-Do not rewrite every theme immediately. The first semantic rewrite target is
-the sidebar. Other semantic files should be added only when the survey shows a
-clear mechanical rewrite or a representative optimized-HTML failure worth
-explaining.
+Do not rewrite every theme immediately. The first semantic rewrite target is now
+an optimized filter component, preferably Region, not a bridge stylesheet that
+tries to make the full sidebar work on the current dropdown DOM. Other semantic
+files should be added only when the survey shows a clear mechanical rewrite or
+a representative optimized-HTML failure worth explaining.
 
 The generated matrix should start with:
 
 | HTML Variant | Original CSS | Semantic CSS |
 | --- | --- | --- |
 | Original | Must render | Not required |
-| Backwards-compatible | Must render | Optional |
+| Backwards-compatible | Must render | Diagnostic only |
 | Optimized | Expected to break for private-selector CSS | Must render for semantic examples |
 
 CSS version names:
@@ -341,8 +380,13 @@ Valid first-pass sidebar combinations:
 | --- | --- |
 | `original + sidebar.original.css` | Shows today's project CSS against today's Kagi DOM |
 | `backwards-compatible + sidebar.original.css` | Proves old functional CSS still works after additive hooks |
-| `backwards-compatible + sidebar.semantic.css` | Optional bridge: proves semantic hooks can be used before the breaking HTML |
-| `optimized + sidebar.semantic.css` | Shows the ideal future contract and simplified markup |
+| `optimized + region.semantic.css` or `optimized + sidebar.semantic.css` | Shows the future contract once markup owns component behavior |
+
+Diagnostic sidebar combinations:
+
+| Combination | Purpose |
+| --- | --- |
+| `backwards-compatible + sidebar.semantic.css` | Tests whether a bridge stylesheet is possible; not required for the proposal |
 
 `bundleVariant` is the primary generated unit. `htmlVariant` and
 `kagiCssVariant` are bundle metadata. `kagiCssVariant` should not become a free
@@ -351,7 +395,7 @@ stress tests rather than primary output.
 
 For public themes, generate `original` CSS against `original` and
 `backwards-compatible` HTML first. Add semantic versions only when there is a
-clear rewrite worth maintaining.
+clear optimized-DOM rewrite worth maintaining.
 
 ## CSS Injection System
 
@@ -535,7 +579,7 @@ Generated HTML should still be inspectable as static files when possible.
 | Generated output | 3 taste under constraints | Ignore root `generated/` by default | Generated matrix pages and screenshots are bulky and reproducible |
 | Matrix UI | 2 coherence | Generate all valid combinations and use the picker as navigation | Reports and screenshots need stable artifact paths; humans need a way to find them |
 | Backwards-compatible default | 1 evidence | Additive hooks only until the CSS survey proves safe simplifications | The purpose of this variant is to measure preservation, not ideal HTML |
-| First semantic CSS | 2 coherence | Rewrite `kagi-sidebar.css` first | It is the known functional Custom CSS case and the project origin |
+| First semantic CSS | 2 coherence | Start with an optimized Region/filter component | The full sidebar bridge proved too coupled to current dropdown internals; Region is complex enough to test component anatomy honestly |
 | CSS corpus | 1 evidence | Use public Kagi themes and gists, stored with metadata | Compatibility should be measured against real user CSS |
 | Tooling | 3 taste under constraints | Use pnpm/Vite with static generated artifacts | Vite improves repeatability without turning examples into an app framework |
 | Diff strategy | 2 coherence | Normalize files and generate scoped summaries | Whole-page raw diffs are evidence, but not the main review surface |
@@ -558,7 +602,9 @@ Generated HTML should still be inspectable as static files when possible.
 - [x] Record sidebar metadata in `fixture-lab/css-corpus/manifest.json`.
 - [x] Run a selector audit against current captured Kagi pages.
 - [x] Produce `compatibility-summary.json`.
-- [x] Add semantic sidebar CSS as the first rewrite target.
+- [x] Add an experimental semantic sidebar CSS rewrite.
+- [ ] Reclassify or replace the semantic sidebar CSS as optimized-only
+  evidence.
 - [ ] Collect public CSS samples into `fixture-lab/css-corpus/original/`.
 - [ ] Preserve source URLs and retrieval dates for public samples.
 
@@ -581,6 +627,8 @@ Generated HTML should still be inspectable as static files when possible.
 - [x] Build a Vite picker/index over the generated matrix pages.
 - [ ] Add original public themes across original and backwards-compatible.
 - [x] Add optimized semantic examples for the sidebar.
+- [ ] Narrow the optimized example to one honest semantic filter component if
+  the full sidebar remains too coupled to current Kagi dropdown internals.
 
 ### Phase 5: Visual And Selector Verification
 
@@ -600,6 +648,20 @@ Generated HTML should still be inspectable as static files when possible.
 - Keep the article focused on the Kagi proposal, not the tooling.
 - Move bulky survey details into an appendix or generated report.
 
+### Phase 7: Narrowed Semantic Sidebar Follow-Up
+
+- [x] Add `specs/20260706T163940-semantic-sidebar-evaluation.md` as the active
+  narrowed execution slice.
+- [x] Update proposal docs to separate semantic hooks, semantic component
+  structure, and native layout modes.
+- [x] Document that backwards-compatible fixtures should stay focused on
+  additive hooks and original Custom CSS.
+- [x] Document that semantic sidebar proof belongs in optimized/breaking DOM.
+- [x] Update generator or corpus labels if needed so generated pages reflect
+  the narrowed matrix.
+- [ ] Decide whether the current semantic sidebar CSS file should stay as a
+  diagnostic bridge or be replaced by a Region-first semantic sample.
+
 ## Verification
 
 The new fixture system is working when:
@@ -614,10 +676,11 @@ The new fixture system is working when:
 - The sidebar has working pages for:
   - `original + current sidebar CSS`.
   - `backwards-compatible + current sidebar CSS`.
-  - `backwards-compatible + semantic sidebar CSS`, if useful.
-  - `optimized + semantic sidebar CSS`.
-- The optimized sidebar page uses simplified Region markup in the full-page
-  example, not only in an isolated component fixture.
+  - `optimized + semantic Region/filter component CSS`.
+- Any `backwards-compatible + semantic sidebar CSS` page is labeled as
+  diagnostic, not as primary proposal evidence.
+- The optimized sidebar or filter page uses simplified Region markup in the
+  full-page example, not only in an isolated component fixture.
 - The fixture lab works through Vite and remains inspectable as static generated
   files.
 - Root `generated/` artifacts are reproducible and ignored by git.

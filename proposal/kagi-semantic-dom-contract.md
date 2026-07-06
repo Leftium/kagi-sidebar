@@ -4,9 +4,9 @@ Date: July 6, 2026
 Status: Draft contract
 Audience: Kagi engineers, designers, frontend maintainers, and Custom CSS authors.
 
-One sentence: Kagi web search can expose a stable semantic DOM contract for
-page identity, layout slots, search controls, filters, results, widgets,
-actions, and state while preserving no-JS behavior.
+One sentence: Kagi web search can expose stable semantic hooks, semantic
+component structure, and native layout modes for page identity, controls,
+filters, results, widgets, actions, and state while preserving no-JS behavior.
 
 This document is the implementation contract behind
 `making-kagi-simpler-smaller-easier-to-customize.md`. The proposal explains why
@@ -30,10 +30,18 @@ Deferred scope:
 - Pixel-perfect sidebar behavior. The sidebar is a proving case, not the
   product contract.
 
-## Contract Levels
+## Contract Layers
 
-The contract has two levels because migration safety and output simplification
-are different jobs.
+The proposal has three layers because migration safety, component
+simplification, and layout placement are different jobs.
+
+| Layer | What it means | Where it belongs |
+| --- | --- | --- |
+| Semantic hooks | Stable `data-kagi-*` attributes identify product concepts on today's DOM. | Backwards-compatible markup. |
+| Semantic component structure | Markup and Kagi-authored CSS own component anatomy such as trigger, preview, popover, list, option, search, section, and action. | Optimized/breaking markup. |
+| Native layout modes | Kagi exposes supported placements such as horizontal toolbar or sidebar through attributes, variables, or settings. | Kagi product behavior, optionally styled by Custom CSS. |
+
+The fixture lab still uses two generated compatibility levels:
 
 | Level                | What changes                                                     | Compatibility promise                                                     |
 | -------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -42,7 +50,9 @@ are different jobs.
 
 The backwards-compatible level proves that Kagi can add hooks before removing
 old structure. The optimized level proves the payoff after Kagi is allowed to
-change that structure.
+change that structure. A semantic sidebar stylesheet should target optimized
+component structure, not the backwards-compatible DOM, unless the lab is
+explicitly testing a diagnostic bridge.
 
 ## Invariants
 
@@ -50,6 +60,10 @@ These rules apply to both levels.
 
 - Product concepts get stable attributes. Generated classes, generated IDs,
   SVG paths, visible text, and child indexes are not public API.
+- Hooks identify concepts; they do not by themselves change component behavior.
+  If Kagi wants Custom CSS authors to move a component safely, the component
+  contract must expose the relevant structure or Kagi must provide a native
+  layout mode.
 - No-JS behavior stays first-class. A user must be able to search, change
   filters, open result links, and use server-backed actions without JavaScript.
 - Standard HTML wins where it can carry behavior: `form`, `input`, `button`,
@@ -229,6 +243,13 @@ Recommended hooks:
 Filters are ordinary GET controls first. Kagi may enhance them with richer
 client behavior, but the submitted state should be visible in standard form
 fields, button names, button values, or links.
+
+In backwards-compatible markup, these hooks may be added to the current
+dropdown DOM as identifiers only. In optimized markup, they should describe the
+actual component anatomy. For a Region filter, that means the trigger, recent
+preview, search field, scrollable list, option rows, active state, clear action,
+and popover sizing are part of the contract rather than side effects of private
+dropdown markup.
 
 ```html
 <section data-kagi-filter-panel data-kagi-layout-slot="search-controls">
@@ -565,17 +586,20 @@ These are not stable public hooks:
 
 ## Fixture Lab Success Criteria
 
-The fixture lab should prove the contract in two ways.
+The fixture lab should prove two different jobs without blending them.
 
 Backwards-compatible fixtures:
 
 - Add contract hooks without removing current private selectors.
 - Keep selector match reports stable for current Custom CSS.
 - Show zero backwards-compatible regressions.
+- Prove existing functional Custom CSS, such as the sidebar release CSS, still
+  works after additive hooks.
 
 Optimized fixtures:
 
-- Rewrite high-impact filter controls into semantic no-JS controls.
+- Rewrite high-impact filter controls into semantic no-JS controls, starting
+  with one honest Region component before a full sidebar.
 - Normalize result, widget, action, and popover hooks across the web search
   page.
 - Preserve runtime scripts for JS-enhanced captures when the source capture
@@ -588,11 +612,16 @@ Optimized fixtures:
   actions without targeting old internals.
 - Keep `/search` and `/html/search` behavior equivalent for search and filters.
 
+`backwards-compatible + semantic sidebar CSS` is not a required success case. If
+generated, it should be labeled as a diagnostic bridge because it asks one
+stylesheet to target both current dropdown internals and future component
+structure.
+
 Measurement should report both the migration story and the optimized payoff:
 
 ```txt
-current release CSS
-semantic CSS against backwards-compatible fixtures
+current release CSS against original fixtures
+current release CSS against backwards-compatible fixtures
 semantic CSS against optimized fixtures
 standard HTML bytes before and after optimized rewrite
 private selector token count

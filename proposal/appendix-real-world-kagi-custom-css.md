@@ -172,6 +172,25 @@ more stable, but not much shorter:
 - Structural preferences such as "hide every grouped result after the fourth";
   those need explicit product hooks if Kagi wants to support them.
 
+## Sidebar Experiment Finding
+
+The local sidebar CSS is the clearest example of a functional layout
+customization. It also shows the limit of additive hooks.
+
+Adding `data-kagi-*` attributes to today's filter DOM makes selectors easier to
+name, but it does not remove the hard parts of the sidebar CSS. The stylesheet
+still has to move controls, reverse closed-dropdown hiding, promote selected
+options, create Region previews, preserve native popover behavior, and size
+lists after changing the layout context.
+
+That means Custom CSS examples fall into two groups:
+
+- Selector-level customizations, where semantic hooks can be added
+  backwards-compatibly and migrated mechanically.
+- Component-structure customizations, where Kagi needs to own the anatomy or
+  expose a native layout mode before Custom CSS can become substantially
+  simpler.
+
 ## Existing CSS Likely To Break
 
 A simplified HTML proposal would break many examples if it removed old selectors
@@ -223,7 +242,9 @@ Manual-review rewrites:
 
 The main proposal should stay centered on search filters because that is the
 measured case study. The community examples justify broadening the semantic
-contract to include results, widgets, actions, and page slots. They also justify
-a migration plan: existing Custom CSS is evidence of demand, but also evidence
-that a cleaner HTML contract cannot be shipped as an invisible implementation
-detail.
+contract to include results, widgets, actions, and page slots. The sidebar
+experiment sharpens the claim: semantic hooks are a compatibility and migration
+tool, while semantic component structure and native layout modes are what make
+layout-changing Custom CSS safer and smaller. Existing Custom CSS is evidence of
+demand, but also evidence that a cleaner HTML contract cannot be shipped as an
+invisible implementation detail.
