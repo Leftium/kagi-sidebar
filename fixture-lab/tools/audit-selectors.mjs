@@ -2,8 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as cheerio from "cheerio";
-import postcss from "postcss";
-import selectorParser from "postcss-selector-parser";
+import { auditCss } from "./css-metrics.mjs";
 
 const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -19,12 +18,6 @@ const matrixManifestPath = path.join(
   "manifest.json",
 );
 
-const privateSelectorPattern =
-  /(^|[\s>+~,(])(?:#[\w-]*(?:dd_toggle|sidebarForm|web_archive)[\w-]*|\.(?:_0_|__|sri-|newsResultItem|podcast_result|quick-search-btn)[\w-]*)/;
-const privateSelectorTokenPattern =
-  /#[\w-]*(?:dd_toggle|sidebarForm|web_archive)[\w-]*|\.(?:_0_|__|sri-|newsResultItem|podcast_result|quick-search-btn)[\w-]*/g;
-const structuralSelectorPattern = /(?:\+|~|>|:nth-child|:nth-of-type)/;
-const modernSelectorPattern = /:has\(/;
 const pseudoElementPattern = /::[\w-]+/;
 
 async function pathExists(filePath) {
@@ -41,160 +34,12 @@ async function readJson(filePath) {
   return JSON.parse(raw);
 }
 
-function splitSelectors(selectorText) {
-  const selectors = [];
-
-  selectorParser((root) => {
-    root.each((selector) => {
-      const value = selector.toString().trim();
-
-      if (value) {
-        selectors.push(value);
-      }
-    });
-  }).processSync(selectorText);
-
-  return selectors;
-}
-
-function closestParentRule(rule) {
-  let parent = rule.parent;
-
-  while (parent) {
-    if (parent.type === "rule") {
-      return parent;
-    }
-
-    parent = parent.parent;
-  }
-
-  return null;
-}
-
-function combineNestedSelector(parentSelector, childSelector) {
-  if (childSelector.includes("&")) {
-    return childSelector.replaceAll("&", parentSelector);
-  }
-
-  return `${parentSelector} ${childSelector}`;
-}
-
-function resolvedSelectorsForRule(rule, cache = new WeakMap()) {
-  const cached = cache.get(rule);
-
-  if (cached) {
-    return cached;
-  }
-
-  const selectors = splitSelectors(rule.selector);
-  const parentRule = closestParentRule(rule);
-
-  if (!parentRule) {
-    cache.set(rule, selectors);
-    return selectors;
-  }
-
-  const parentSelectors = resolvedSelectorsForRule(parentRule, cache);
-  const resolvedSelectors = parentSelectors.flatMap((parentSelector) =>
-    selectors.map((selector) =>
-      combineNestedSelector(parentSelector, selector),
-    ),
-  );
-
-  cache.set(rule, resolvedSelectors);
-  return resolvedSelectors;
-}
-
-function classifySelector(selector) {
-  return {
-    selector,
-    privateKagiSelector: privateSelectorPattern.test(selector),
-    structuralDependency: structuralSelectorPattern.test(selector),
-    modernSelector: modernSelectorPattern.test(selector),
-  };
-}
-
 function selectorForMatching(selector) {
   if (pseudoElementPattern.test(selector)) {
     return null;
   }
 
   return selector;
-}
-
-function countLines(value) {
-  if (!value) {
-    return 0;
-  }
-
-  const newlineCount = value.match(/\n/g)?.length ?? 0;
-
-  return value.endsWith("\n") ? newlineCount : newlineCount + 1;
-}
-
-function uniquePrivateSelectorTokens(selectors) {
-  return [
-    ...new Set(
-      selectors.flatMap(
-        (item) => item.selector.match(privateSelectorTokenPattern) ?? [],
-      ),
-    ),
-  ].sort();
-}
-
-function auditCss(css, from) {
-  const root = postcss.parse(css, { from });
-  const selectors = [];
-  let declarationCount = 0;
-  let tokenDeclarationCount = 0;
-  const selectorCache = new WeakMap();
-
-  root.walkRules((rule) => {
-    if (
-      rule.parent?.type === "atrule" &&
-      /keyframes$/i.test(rule.parent.name)
-    ) {
-      return;
-    }
-
-    for (const selector of resolvedSelectorsForRule(rule, selectorCache)) {
-      selectors.push(classifySelector(selector));
-    }
-
-    rule.each((node) => {
-      if (node.type !== "decl") {
-        return;
-      }
-
-      const declaration = node;
-      declarationCount += 1;
-
-      if (
-        declaration.prop.startsWith("--") ||
-        /var\(--/.test(declaration.value)
-      ) {
-        tokenDeclarationCount += 1;
-      }
-    });
-  });
-
-  const privateSelectorTokens = uniquePrivateSelectorTokens(selectors);
-
-  return {
-    lineCount: countLines(css),
-    selectorCount: selectors.length,
-    privateSelectorCount: selectors.filter((item) => item.privateKagiSelector)
-      .length,
-    privateSelectorTokenCount: privateSelectorTokens.length,
-    privateSelectorTokens,
-    structuralSelectorCount: selectors.filter(
-      (item) => item.structuralDependency,
-    ).length,
-    modernSelectorCount: selectors.filter((item) => item.modernSelector).length,
-    declarationCount,
-    tokenDeclarationCount,
-    selectors,
-  };
 }
 
 async function readMatrixManifest() {
@@ -227,7 +72,6 @@ async function auditSampleVersion(sample, version, localPath) {
     version,
     path: localPath,
     missing: false,
-    bytes: Buffer.byteLength(css),
     ...auditCss(css, absolutePath),
   };
 }
@@ -242,7 +86,7 @@ async function loadHtmlVariantPages(matrixManifest) {
   const htmlPaths = new Map();
   for (const combination of matrixManifest.combinations ?? []) {
     htmlPaths.set(
-      `${combination.captureId}::${combination.htmlVariant}`,
+      `${combination.captureId}::${combination.bundleVariant ?? combination.htmlVariant}`,
       combination.htmlPath,
     );
   }
@@ -300,8 +144,11 @@ function uniqueMatchTargets(report, matrixManifest) {
       continue;
     }
 
-    targets.set(`${combination.captureId}::${combination.htmlVariant}`, {
+    const bundleVariant = combination.bundleVariant ?? combination.htmlVariant;
+
+    targets.set(`${combination.captureId}::${bundleVariant}`, {
       captureId: combination.captureId,
+      bundleVariant,
       htmlVariant: combination.htmlVariant,
     });
   }
@@ -315,7 +162,7 @@ function matchSelectors(report, pages, matrixManifest) {
   }
 
   return uniqueMatchTargets(report, matrixManifest).map((target) => {
-    const key = `${target.captureId}::${target.htmlVariant}`;
+    const key = `${target.captureId}::${target.bundleVariant}`;
     const page = pages.get(key);
 
     if (!page) {
@@ -337,6 +184,7 @@ function matchSelectors(report, pages, matrixManifest) {
       sampleId: report.sampleId,
       cssVersion: report.version,
       captureId: target.captureId,
+      bundleVariant: target.bundleVariant,
       htmlVariant: target.htmlVariant,
       htmlPath: page.path,
       selectorCount: selectors.length,
@@ -360,7 +208,7 @@ function summarizeCompatibility(reports, selectorMatches) {
 
   const originalMatches = new Map();
   for (const matchReport of selectorMatches) {
-    if (matchReport.htmlVariant !== "original") {
+    if ((matchReport.bundleVariant ?? matchReport.htmlVariant) !== "original") {
       continue;
     }
 
@@ -380,7 +228,10 @@ function summarizeCompatibility(reports, selectorMatches) {
   }
 
   for (const matchReport of selectorMatches) {
-    if (matchReport.htmlVariant !== "backwards-compatible") {
+    if (
+      (matchReport.bundleVariant ?? matchReport.htmlVariant) !==
+      "backwards-compatible"
+    ) {
       continue;
     }
 
@@ -397,6 +248,7 @@ function summarizeCompatibility(reports, selectorMatches) {
           sampleId: matchReport.sampleId,
           cssVersion: matchReport.cssVersion,
           captureId: matchReport.captureId,
+          bundleVariant: matchReport.bundleVariant ?? matchReport.htmlVariant,
           selector: selector.selector,
           originalMatchCount: originalMatches.get(key),
         });

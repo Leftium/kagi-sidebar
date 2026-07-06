@@ -1,0 +1,51 @@
+/*
+ * Optimized Kagi-authored search control fixture CSS.
+ *
+ * This is the lab-owned CSS Kagi would ship with the optimized search control
+ * markup. User Custom CSS stays in fixture-lab/css-corpus/.
+ */
+
+[data-kagi-filter-menu] {
+  position: relative;
+}
+
+[data-kagi-filter-menu] > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+[data-kagi-filter-menu] > summary::-webkit-details-marker {
+  display: none;
+}
+
+[data-kagi-filter-menu]:not([open]) > [data-kagi-filter-options] {
+  display: none;
+}
+
+[data-kagi-filter-menu][open] {
+  z-index: 60;
+}
+
+[data-kagi-filter-menu][open] + [data-kagi-filter-preview] {
+  display: none;
+}
+
+[data-kagi-filter-menu][open] > [data-kagi-filter-options] {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 70;
+  width: min(320px, calc(100vw - 48px));
+  max-height: min(65vh, 520px);
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid var(--ksb-border, color-mix(in srgb, currentColor 16%, transparent));
+  border-radius: var(--ksb-radius, 6px);
+  background: var(--app-bg, Canvas);
+  box-shadow: 0 12px 28px color-mix(in srgb, black 18%, transparent);
+  overflow: auto;
+}
+
+[data-kagi-filter-options] > form {
+  margin: 0;
+}

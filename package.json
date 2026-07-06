@@ -10,7 +10,7 @@
     "audit-css": "node fixture-lab/tools/audit-selectors.mjs",
     "capture-domain-info": "node fixture-lab/tools/capture-domain-info.mjs",
     "check-js-popovers": "node fixture-lab/tools/check-js-popovers.mjs",
-    "format": "prettier --write README.md index.html package.json \"fixture-lab/README.md\" \"fixture-lab/captures/**/*.md\" \"fixture-lab/css-corpus/manifest.json\" \"fixture-lab/css-corpus/semantic/**/*.css\" \"fixture-lab/site/**/*.{html,css,js}\" \"fixture-lab/tools/**/*.mjs\"",
+    "format": "prettier --write README.md index.html package.json \"fixture-lab/README.md\" \"fixture-lab/captures/**/*.md\" \"fixture-lab/css-corpus/manifest.json\" \"fixture-lab/css-corpus/semantic/**/*.css\" \"fixture-lab/kagi-authored-css/**/*.css\" \"fixture-lab/site/**/*.{html,css,js}\" \"fixture-lab/tools/**/*.mjs\"",
     "check": "pnpm generate && pnpm audit-css"
   },
   "devDependencies": {

@@ -8,16 +8,15 @@
 
 ## One Sentence
 
-Build a fixture lab that compares original Kagi HTML, a backwards-compatible
-hooked version, and an optimized breaking version against original and semantic
-Kagi Custom CSS.
+Build a fixture lab that compares original, backwards-compatible, and optimized
+Kagi HTML/CSS bundles against original and semantic Kagi Custom CSS.
 
 ## Overview
 
 This spec replaces the first generated-example attempt with a cleaner evidence
 pipeline. The new pipeline should make compatibility claims measurable:
 original Custom CSS should keep working on original and backwards-compatible
-HTML, while semantic Custom CSS should work on optimized breaking HTML.
+bundles, while semantic Custom CSS should work on the optimized bundle.
 
 ## How To Read This Spec
 
@@ -93,24 +92,27 @@ different claims in one set of pages.
 
 ## Target Shape
 
-The fixture lab should produce three Kagi HTML variants from the same captured
+The fixture lab should produce three Kagi bundle variants from the same captured
 page.
 
 ```text
 captured Kagi HTML
-  -> original
-  -> backwards-compatible
-  -> optimized
+  -> original bundle
+  -> backwards-compatible bundle
+  -> optimized bundle
+
+Kagi-authored CSS
+  -> current captured remote CSS for original/backwards-compatible
+  -> local lab-owned optimized CSS for optimized
 
 real Custom CSS corpus
   -> original CSS
   -> semantic CSS, only when needed
 
-HTML variant x CSS sample
+bundle variant x Custom CSS sample
   -> generated matrix pages
   -> picker/index page
   -> selector match reports
-  -> screenshots
   -> byte and complexity measurements
 ```
 
@@ -310,21 +312,20 @@ the target artifact.
 
 ## Matrix Workflow
 
-Generate all valid combinations, then expose them through an index page with
-pickers.
+Generate all valid bundle and Custom CSS combinations, then expose them through
+an index page with pickers.
 
 ```text
 pnpm generate
-  -> writes HTML variants
-  -> writes valid HTML x CSS matrix pages, including no-CSS baselines
+  -> writes bundle HTML
+  -> writes valid bundle x Custom CSS matrix pages, including no-CSS baselines
   -> writes selector and measurement reports
-  -> writes screenshots when browser verification runs
 
 pnpm dev
   -> opens the Vite fixture-lab site at /
   -> picker: capture
-  -> picker: HTML variant with size metrics
-  -> picker: CSS option with selector and size metrics
+  -> picker: bundle with HTML and Kagi-authored CSS metrics
+  -> picker: Custom CSS option with selector and size metrics
   -> link: generated artifact
   -> link: selector report
 ```
@@ -342,6 +343,11 @@ Valid first-pass sidebar combinations:
 | `backwards-compatible + sidebar.original.css` | Proves old functional CSS still works after additive hooks |
 | `backwards-compatible + sidebar.semantic.css` | Optional bridge: proves semantic hooks can be used before the breaking HTML |
 | `optimized + sidebar.semantic.css` | Shows the ideal future contract and simplified markup |
+
+`bundleVariant` is the primary generated unit. `htmlVariant` and
+`kagiCssVariant` are bundle metadata. `kagiCssVariant` should not become a free
+public matrix axis. Diagnostic hybrids can exist, but they should be labeled as
+stress tests rather than primary output.
 
 For public themes, generate `original` CSS against `original` and
 `backwards-compatible` HTML first. Add semantic versions only when there is a
@@ -365,6 +371,9 @@ fixture-lab/
       kagi-plus.css
     semantic/
       sidebar.css
+  kagi-authored-css/
+    optimized/
+      search-controls.css
     manifest.json
   tools/
     generate-fixtures.mjs
@@ -386,11 +395,11 @@ generated/
   reports/
     selector-matches.json
     compatibility-summary.json
-    byte-counts.json
+    generation-summary.json
   screenshots/
 ```
 
-CSS injection should be explicit and reversible:
+Custom CSS injection should be explicit and reversible:
 
 ```html
 <link rel="stylesheet" href="../../fixture-lab/css-corpus/original/sidebar.css">
@@ -406,6 +415,31 @@ or, when a standalone file is needed:
 
 Prefer linked CSS during development so browser devtools can identify the source
 file. Inline CSS is useful for archived artifacts.
+
+Metrics should report bundle and user CSS separately:
+
+```text
+bundle metrics:
+  HTML bytes
+  Kagi-authored CSS source bytes
+  Kagi-authored CSS minified bytes
+
+Custom CSS metrics:
+  CSS source bytes
+  CSS minified bytes
+  selector counts
+  private hook counts
+  structural selector counts
+
+total measured surface:
+  HTML bytes + Kagi-authored CSS minified bytes + Custom CSS minified bytes
+```
+
+Only Kagi CSS changes required by the bundle contract should count in the
+headline optimized bundle. Generic CSS cleanup, such as source nesting,
+deduplicating selectors, or unrelated size refactors, can be measured as a
+separate diagnostic, but mixing it into the optimized bundle would make the DOM
+contract proposal look better for reasons that are not caused by the proposal.
 
 ## Compatibility Survey
 

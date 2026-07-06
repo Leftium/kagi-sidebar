@@ -17,11 +17,12 @@ let compatibilitySummary = null;
 let selectorInventory = { samples: [] };
 let selectorMatches = { matches: [] };
 let matrixManifest = {
+  bundleVariants: [],
+  bundles: [],
   captures: [],
   combinations: [],
   cssOptions: [],
   cssSamples: [],
-  htmlVariants: [],
 };
 let state = { ...preferredSelection };
 
@@ -80,6 +81,7 @@ function humanize(value) {
     "backwards-compatible": "Backwards-compatible hooks",
     "backwards-compatible-preserved": "Backwards-compatible preserved",
     "backwards-compatible-regressions": "Backwards-compatible regressions",
+    current: "Current",
     "html-search": "Basic HTML search",
     none: "No CSS",
     original: "Original",
@@ -95,9 +97,9 @@ function humanize(value) {
   return labels[value] ?? String(value).replaceAll("-", " ");
 }
 
-function htmlVariantLabel(value) {
+function bundleVariantLabel(value) {
   if (value === "original") {
-    return "Original capture";
+    return "Original bundle";
   }
 
   return humanize(value);
@@ -265,14 +267,14 @@ function cssSampleOptions() {
   });
 }
 
-function htmlVariants() {
-  return matrixManifest.htmlVariants?.length
-    ? matrixManifest.htmlVariants
+function bundleVariants() {
+  return matrixManifest.bundleVariants?.length
+    ? matrixManifest.bundleVariants
     : uniqueValues(
         currentCombinations().filter(
           (item) => item.captureId === state.captureId,
         ),
-        (item) => item.htmlVariant,
+        (item) => item.bundleVariant ?? item.htmlVariant,
       );
 }
 
@@ -280,9 +282,14 @@ function cssOptionsForSample(cssSample) {
   return cssOptions().filter((item) => item.sampleId === cssSample);
 }
 
-function htmlMetric(captureId, htmlVariant) {
-  return (generationSummary?.generatedHtml ?? []).find(
-    (item) => item.captureId === captureId && item.htmlVariant === htmlVariant,
+function bundleMetric(captureId, bundleVariant) {
+  const generatedBundles =
+    generationSummary?.generatedBundles ?? generationSummary?.generatedHtml ?? [];
+
+  return generatedBundles.find(
+    (item) =>
+      item.captureId === captureId &&
+      (item.bundleVariant ?? item.htmlVariant) === bundleVariant,
   );
 }
 
@@ -290,6 +297,8 @@ function cssMetric(cssSample, cssVersion) {
   if (cssSample === "none") {
     return {
       bytes: 0,
+      sourceBytes: 0,
+      minifiedBytes: 0,
       lineCount: 0,
       selectorCount: 0,
       privateSelectorCount: 0,
@@ -304,39 +313,55 @@ function cssMetric(cssSample, cssVersion) {
   );
 }
 
-function selectorMatch(captureId, htmlVariant, cssSample, cssVersion) {
+function selectorMatch(captureId, bundleVariant, cssSample, cssVersion) {
   return (selectorMatches.matches ?? []).find(
     (item) =>
       item.captureId === captureId &&
-      item.htmlVariant === htmlVariant &&
+      (item.bundleVariant ?? item.htmlVariant) === bundleVariant &&
       item.sampleId === cssSample &&
       item.cssVersion === cssVersion,
   );
 }
 
-function selectorMatchText(captureId, htmlVariant, cssSample, cssVersion) {
+function selectorMatchText(captureId, bundleVariant, cssSample, cssVersion) {
   if (cssSample === "none") {
     return "Baseline";
   }
 
-  const match = selectorMatch(captureId, htmlVariant, cssSample, cssVersion);
+  const match = selectorMatch(captureId, bundleVariant, cssSample, cssVersion);
 
   return match
     ? `${match.matchedSelectorCount}/${match.selectorCount} matched`
     : "No selector report";
 }
 
-function matrixCombinationsForHtmlVariant(htmlVariant) {
+function matrixCombinationsForBundleVariant(bundleVariant) {
   return currentCombinations().filter(
     (item) =>
       item.captureId === state.captureId &&
-      item.htmlVariant === htmlVariant &&
+      (item.bundleVariant ?? item.htmlVariant) === bundleVariant &&
       item.cssSample === state.cssSample,
   );
 }
 
 function selectedCaptureOriginalBytes() {
-  return htmlMetric(state.captureId, "original")?.bytes;
+  return bundleMetric(state.captureId, "original")?.htmlBytes;
+}
+
+function measuredTotalBytes(bundle, cssMetricValue) {
+  if (!bundle || bundle.htmlBytes == null) {
+    return null;
+  }
+
+  if (bundle.kagiAuthoredCssMetrics?.minifiedBytes == null) {
+    return null;
+  }
+
+  return (
+    bundle.htmlBytes +
+    bundle.kagiAuthoredCssMetrics.minifiedBytes +
+    (cssMetricValue?.minifiedBytes ?? cssMetricValue?.bytes ?? 0)
+  );
 }
 
 function renderSummaryCards() {
@@ -353,8 +378,14 @@ function renderSummaryCards() {
       value: String(matrixManifest.captures?.length ?? 0),
     },
     {
-      label: "HTML pages",
-      value: String(generationSummary?.generatedHtml?.length ?? 0),
+      label: "Bundle pages",
+      value: String(
+        (
+          generationSummary?.generatedBundles ??
+          generationSummary?.generatedHtml ??
+          []
+        ).length,
+      ),
     },
     {
       label: "Matrix pages",
@@ -442,7 +473,7 @@ function renderCssSampleOptions() {
 }
 
 function renderHtmlComparison() {
-  const variants = htmlVariants();
+  const variants = bundleVariants();
   const originalBytes = selectedCaptureOriginalBytes();
 
   if (!variants.length) {
@@ -452,21 +483,31 @@ function renderHtmlComparison() {
 
   controls.htmlComparison.className = "comparison-grid html-comparison-grid";
   controls.htmlComparison.innerHTML = variants
-    .map((htmlVariant) => {
-      const metric = htmlMetric(state.captureId, htmlVariant);
+    .map((bundleVariant) => {
+      const metric = bundleMetric(state.captureId, bundleVariant);
       const delta =
-        metric?.bytes == null || originalBytes == null
+        metric?.htmlBytes == null || originalBytes == null
           ? "Pending"
-          : formatDelta(metric.bytes - originalBytes);
-      const combinations = matrixCombinationsForHtmlVariant(htmlVariant);
+          : formatDelta(metric.htmlBytes - originalBytes);
+      const combinations = matrixCombinationsForBundleVariant(bundleVariant);
+      const localKagiCss =
+        metric?.kagiAuthoredCssMetrics?.minifiedBytes == null
+          ? "External"
+          : formatBytes(metric.kagiAuthoredCssMetrics.minifiedBytes);
+      const bundleSurface =
+        metric?.totalBundleBytes == null
+          ? null
+          : formatBytes(metric.totalBundleBytes);
 
       return `<article class="comparison-card">
         <div class="card-heading">
-          <h3>${escapeHtml(htmlVariantLabel(htmlVariant))}</h3>
+          <h3>${escapeHtml(bundleVariantLabel(bundleVariant))}</h3>
         </div>
         <div class="choice-meta">
-          ${statRow("Size", formatBytes(metric?.bytes))}
-          ${statRow("Delta", delta)}
+          ${statRow("HTML", formatBytes(metric?.htmlBytes))}
+          ${statRow("HTML delta", delta)}
+          ${statRow("Kagi CSS min", localKagiCss)}
+          ${statRow("Bundle total", bundleSurface ?? "External CSS")}
           ${statRow("Source", metric?.path ?? "Pending")}
         </div>
         ${renderHtmlVariantLinkList(combinations, "No generated pages for selected CSS.")}
@@ -499,7 +540,8 @@ function renderCssVersionComparison() {
           <h3>${escapeHtml(cssVersionLabel(version))}</h3>
         </div>
         <div class="choice-meta">
-          ${statRow("Size", formatBytes(metric?.bytes))}
+          ${statRow("Source", formatBytes(metric?.sourceBytes ?? metric?.bytes))}
+          ${statRow("Minified", formatBytes(metric?.minifiedBytes ?? metric?.bytes))}
           ${statRow("Lines", String(metric?.lineCount ?? 0))}
           ${statRow("Selectors", String(metric?.selectorCount ?? 0))}
           ${statRow("Kagi hooks", String(metric?.privateSelectorTokenCount ?? 0))}
@@ -523,13 +565,13 @@ function renderVersionMatchList(version, combinations) {
       .map((combination) => {
         const text = selectorMatchText(
           combination.captureId,
-          combination.htmlVariant,
+          combination.bundleVariant ?? combination.htmlVariant,
           version.sampleId,
           version.version,
         );
 
         return `<a class="link-chip" href="/${escapeHtml(combination.matrixPath)}">
-          <span>${escapeHtml(htmlVariantLabel(combination.htmlVariant))}</span>
+          <span>${escapeHtml(bundleVariantLabel(combination.bundleVariant ?? combination.htmlVariant))}</span>
           <strong>${escapeHtml(text)}</strong>
         </a>`;
       })
@@ -547,14 +589,22 @@ function renderHtmlVariantLinkList(combinations, emptyMessage) {
       .map((combination) => {
         const text = selectorMatchText(
           combination.captureId,
-          combination.htmlVariant,
+          combination.bundleVariant ?? combination.htmlVariant,
           combination.cssSample,
           combination.cssVersion,
         );
+        const bundle = bundleMetric(
+          combination.captureId,
+          combination.bundleVariant ?? combination.htmlVariant,
+        );
+        const customCss = cssMetric(combination.cssSample, combination.cssVersion);
+        const totalSurface = measuredTotalBytes(bundle, customCss);
+        const surfaceText =
+          totalSurface == null ? "external CSS" : formatBytes(totalSurface);
 
         return `<a class="link-chip" href="/${escapeHtml(combination.matrixPath)}" title="${escapeHtml(combination.matrixFileName)}">
           <span>${escapeHtml(cssVersionLabel(combination))}</span>
-          <strong>${escapeHtml(text)}</strong>
+          <strong>${escapeHtml(`${text} · ${surfaceText}`)}</strong>
         </a>`;
       })
       .join("")}
@@ -578,7 +628,7 @@ function renderMatrixRows(combinations) {
     .map(
       (item) => `<tr>
         <td>${escapeHtml(humanize(item.captureId))}</td>
-        <td>${escapeHtml(htmlVariantLabel(item.htmlVariant))}</td>
+        <td>${escapeHtml(bundleVariantLabel(item.bundleVariant ?? item.htmlVariant))}</td>
         <td>${escapeHtml(cssCombinationLabel(item))}</td>
         <td>${escapeHtml(item.matrixFileName)}</td>
         <td><a href="/${escapeHtml(item.matrixPath)}">Open</a></td>
@@ -611,11 +661,12 @@ async function loadReports() {
         matches: [],
       })),
       fetchJson("/generated/matrix/manifest.json").catch(() => ({
+        bundleVariants: [],
+        bundles: [],
         captures: [],
         combinations: [],
         cssOptions: [],
         cssSamples: [],
-        htmlVariants: [],
       })),
     ]);
 

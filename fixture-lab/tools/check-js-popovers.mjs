@@ -31,17 +31,17 @@ const systemChromeCandidates = [
 
 const preferredChecks = [
   {
-    htmlVariant: "original",
+    bundleVariant: "original",
     cssSample: "sidebar",
     cssVersion: "original",
   },
   {
-    htmlVariant: "backwards-compatible",
+    bundleVariant: "backwards-compatible",
     cssSample: "sidebar",
     cssVersion: "semantic",
   },
   {
-    htmlVariant: "optimized",
+    bundleVariant: "optimized",
     cssSample: "sidebar",
     cssVersion: "semantic",
   },
@@ -63,7 +63,7 @@ async function readJson(filePath) {
 function slugFor(combination) {
   return [
     combination.captureId,
-    combination.htmlVariant,
+    combination.bundleVariant ?? combination.htmlVariant,
     combination.cssSample,
     combination.cssVersion,
   ].join("__");
@@ -157,14 +157,14 @@ function plannedChecks(manifest) {
     const combination = manifest.combinations.find(
       (item) =>
         item.captureId === "search" &&
-        item.htmlVariant === check.htmlVariant &&
+        (item.bundleVariant ?? item.htmlVariant) === check.bundleVariant &&
         item.cssSample === check.cssSample &&
         item.cssVersion === check.cssVersion,
     );
 
     if (!combination) {
       throw new Error(
-        `Missing matrix page for ${check.htmlVariant}/${check.cssVersion}. Run pnpm generate first.`,
+        `Missing matrix page for ${check.bundleVariant}/${check.cssVersion}. Run pnpm generate first.`,
       );
     }
 

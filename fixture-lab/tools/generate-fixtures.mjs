@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as cheerio from "cheerio";
+import { auditCss } from "./css-metrics.mjs";
 
 const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -12,12 +13,37 @@ const generatedRoot = path.join(projectRoot, "generated");
 const fixtureRoot = path.join(projectRoot, "fixture-lab");
 const captureRoot = path.join(fixtureRoot, "captures", "original");
 
-const plannedHtmlVariants = ["original", "backwards-compatible", "optimized"];
-const implementedHtmlVariants = [
+const plannedBundleVariants = ["original", "backwards-compatible", "optimized"];
+const implementedBundleVariants = [
   "original",
   "backwards-compatible",
   "optimized",
 ];
+const bundleDefinitions = [
+  {
+    id: "original",
+    htmlVariant: "original",
+    kagiCssVariant: "current",
+    kagiCssSource: "captured-remote",
+    kagiCssPaths: [],
+  },
+  {
+    id: "backwards-compatible",
+    htmlVariant: "backwards-compatible",
+    kagiCssVariant: "current",
+    kagiCssSource: "captured-remote",
+    kagiCssPaths: [],
+  },
+  {
+    id: "optimized",
+    htmlVariant: "optimized",
+    kagiCssVariant: "optimized",
+    kagiCssSource: "local-lab",
+    kagiCssPaths: [
+      "fixture-lab/kagi-authored-css/optimized/search-controls.css",
+    ],
+  },
+].filter((bundle) => implementedBundleVariants.includes(bundle.id));
 const preferredCaptureOrder = ["search", "html-search"];
 const noCssOption = {
   sampleId: "none",
@@ -110,7 +136,7 @@ async function ensureGeneratedDirs() {
   ]);
 
   const dirs = [
-    ...plannedHtmlVariants.map((variant) =>
+    ...plannedBundleVariants.map((variant) =>
       path.join(generatedRoot, "html", variant),
     ),
     path.join(generatedRoot, "matrix"),
@@ -119,6 +145,83 @@ async function ensureGeneratedDirs() {
   ];
 
   await Promise.all(dirs.map((dir) => fs.mkdir(dir, { recursive: true })));
+}
+
+async function cssMetricsForLocalPath(relativePath) {
+  const body = await fs.readFile(path.join(projectRoot, relativePath), "utf8");
+
+  return auditCss(body, relativePath);
+}
+
+function emptyCssMetrics() {
+  return {
+    sourceBytes: 0,
+    minifiedBytes: 0,
+    bytes: 0,
+    lineCount: 0,
+    selectorCount: 0,
+    privateSelectorCount: 0,
+    privateSelectorTokenCount: 0,
+    privateSelectorTokens: [],
+    structuralSelectorCount: 0,
+    modernSelectorCount: 0,
+    declarationCount: 0,
+    tokenDeclarationCount: 0,
+  };
+}
+
+function combineCssMetrics(items) {
+  const totals = emptyCssMetrics();
+  const privateSelectorTokens = new Set();
+
+  for (const item of items) {
+    for (const key of [
+      "sourceBytes",
+      "minifiedBytes",
+      "bytes",
+      "lineCount",
+      "selectorCount",
+      "privateSelectorCount",
+      "privateSelectorTokenCount",
+      "structuralSelectorCount",
+      "modernSelectorCount",
+      "declarationCount",
+      "tokenDeclarationCount",
+    ]) {
+      totals[key] += item[key] ?? 0;
+    }
+
+    for (const token of item.privateSelectorTokens ?? []) {
+      privateSelectorTokens.add(token);
+    }
+  }
+
+  totals.privateSelectorTokens = [...privateSelectorTokens].sort();
+  totals.privateSelectorTokenCount = totals.privateSelectorTokens.length;
+  totals.bytes = totals.minifiedBytes;
+
+  return totals;
+}
+
+async function bundleOptions() {
+  return Promise.all(
+    bundleDefinitions.map(async (bundle) => {
+      const kagiAuthoredCssMetrics = bundle.kagiCssPaths.length
+        ? await Promise.all(
+            bundle.kagiCssPaths.map((cssPath) =>
+              cssMetricsForLocalPath(cssPath),
+            ),
+          )
+        : null;
+
+      return {
+        ...bundle,
+        kagiAuthoredCssMetrics: kagiAuthoredCssMetrics
+          ? combineCssMetrics(kagiAuthoredCssMetrics)
+          : null,
+      };
+    }),
+  );
 }
 
 function cssVersionsForSample(sample) {
@@ -713,6 +816,10 @@ function buildGetForm($, state, attrs = {}) {
   return form;
 }
 
+function buildFilterOptionsPanel($, form) {
+  return $("<div></div>").attr("data-kagi-filter-options", "").append(form);
+}
+
 function filterTriggerText(filter, fallback) {
   return (
     normalizeText(
@@ -823,7 +930,6 @@ function optimizeTimeFilter($) {
   const state = filterFormState(optionLinks, ["dr", "from_date", "to_date"]);
   const details = $("<details></details>").attr("data-kagi-filter-menu", "");
   const form = buildGetForm($, state, {
-    "data-kagi-filter-options": "",
     "data-kagi-time-form": "",
   });
   const presetSection = $("<div></div>").attr(
@@ -857,7 +963,7 @@ function optimizeTimeFilter($) {
 
   appendFilterOptionButtons($, preview, optionLinks.slice(0, 5), "dr");
   details.append(buildFilterSummary($, filterTriggerText(timeFilter, "Time")));
-  details.append(form);
+  details.append(buildFilterOptionsPanel($, form));
   timeFilter.empty().append(details, preview);
   removeClasses(timeFilter, ["dropdown", "filter-item"]);
 }
@@ -873,7 +979,6 @@ function optimizeSortFilter($) {
   const state = filterFormState(optionLinks, ["order", "dir"]);
   const details = $("<details></details>").attr("data-kagi-filter-menu", "");
   const form = buildGetForm($, state, {
-    "data-kagi-filter-options": "",
     "data-kagi-sort-form": "",
   });
 
@@ -902,7 +1007,7 @@ function optimizeSortFilter($) {
   }
 
   details.append(buildFilterSummary($, filterTriggerText(sortFilter, "Sort")));
-  details.append(form);
+  details.append(buildFilterOptionsPanel($, form));
   sortFilter.empty().append(details);
   removeClasses(sortFilter, ["dropdown", "filter-item"]);
 }
@@ -935,7 +1040,6 @@ function buildRegionForm($, state, regionLinks) {
   const form = $("<form></form>")
     .attr("method", "get")
     .attr("action", state.action)
-    .attr("data-kagi-filter-options", "")
     .attr("data-kagi-region-form", "");
   const search = $("<input>").attr({
     type: "search",
@@ -989,7 +1093,9 @@ function optimizeRegionFilter($) {
     .slice(0, 4);
 
   details.append(buildFilterSummary($, triggerText));
-  details.append(buildRegionForm($, state, regionLinks));
+  details.append(
+    buildFilterOptionsPanel($, buildRegionForm($, state, regionLinks)),
+  );
 
   regionFilter
     .empty()
@@ -1036,25 +1142,25 @@ function cssPathForVersion(sample, version) {
   return version === "semantic" ? sample.local_semantic : sample.local_original;
 }
 
-function validHtmlVariantsForCssVersion(cssVersion) {
+function validBundleVariantsForCssVersion(cssVersion) {
   if (cssVersion === "semantic") {
     return ["backwards-compatible", "optimized"].filter((variant) =>
-      implementedHtmlVariants.includes(variant),
+      implementedBundleVariants.includes(variant),
     );
   }
 
   return ["original", "backwards-compatible"];
 }
 
-function validHtmlVariantsForCssOption(cssOption) {
+function validBundleVariantsForCssOption(cssOption) {
   if (cssOption.sampleId === "none") {
-    return implementedHtmlVariants;
+    return implementedBundleVariants;
   }
 
-  return validHtmlVariantsForCssVersion(cssOption.version);
+  return validBundleVariantsForCssVersion(cssOption.version);
 }
 
-function plannedCombinations(samples, captures) {
+function plannedCombinations(samples, captures, bundles) {
   if (captures.length === 0) {
     return [];
   }
@@ -1063,12 +1169,13 @@ function plannedCombinations(samples, captures) {
 
   return captures.flatMap((capture) =>
     cssOptions.flatMap((cssOption) =>
-      validHtmlVariantsForCssOption(cssOption).map((htmlVariant) => {
-        const matrixFileName = `${capture.id}__${htmlVariant}__${cssOption.sampleId}__${cssOption.version}.html`;
+      validBundleVariantsForCssOption(cssOption).map((bundleVariant) => {
+        const bundle = bundles.find((item) => item.id === bundleVariant);
+        const matrixFileName = `${capture.id}__${bundleVariant}__${cssOption.sampleId}__${cssOption.version}.html`;
         const htmlFilePath = path.join(
           generatedRoot,
           "html",
-          htmlVariant,
+          bundleVariant,
           `${capture.id}.html`,
         );
         const matrixFilePath = path.join(
@@ -1080,7 +1187,12 @@ function plannedCombinations(samples, captures) {
         return {
           captureId: capture.id,
           captureFile: relativeProjectPath(capture.sourcePath),
-          htmlVariant,
+          bundleVariant,
+          htmlVariant: bundle.htmlVariant,
+          kagiCssVariant: bundle.kagiCssVariant,
+          kagiCssSource: bundle.kagiCssSource,
+          kagiCssPaths: bundle.kagiCssPaths,
+          kagiAuthoredCssMetrics: bundle.kagiAuthoredCssMetrics,
           htmlPath: relativeProjectPath(htmlFilePath),
           cssSample: cssOption.sampleId,
           cssSampleName: cssOption.sampleName,
@@ -1095,8 +1207,35 @@ function plannedCombinations(samples, captures) {
   );
 }
 
-function injectCssLink(html, combination) {
+function isKagiAuthoredCssLink($, element) {
+  const node = $(element);
+  const rel = node.attr("rel") ?? "";
+  const href = node.attr("href") ?? "";
+
+  return (
+    /\bstylesheet\b/i.test(rel) &&
+    href.startsWith(`${kagiOrigin}/asset/`) &&
+    href.includes("/css/")
+  );
+}
+
+function injectCssLinks(html, combination) {
   const $ = cheerio.load(html, { decodeEntities: false });
+
+  if (combination.kagiCssSource === "local-lab") {
+    $("link[href]").each((_, element) => {
+      if (isKagiAuthoredCssLink($, element)) {
+        $(element).remove();
+      }
+    });
+
+    for (const cssPath of combination.kagiCssPaths ?? []) {
+      const href = `../../${cssPath}`;
+      const cssLink = `<link rel="stylesheet" href="${href}" data-fixture-kagi-css="${combination.kagiCssVariant}">`;
+
+      $("head").append(`\n    ${cssLink}\n  `);
+    }
+  }
 
   if (combination.cssPath) {
     const href = `../../${combination.cssPath}`;
@@ -1107,30 +1246,32 @@ function injectCssLink(html, combination) {
 
   $("html")
     .attr("data-fixture-capture", combination.captureId)
+    .attr("data-fixture-bundle-variant", combination.bundleVariant)
     .attr("data-fixture-html-variant", combination.htmlVariant)
+    .attr("data-fixture-kagi-css-variant", combination.kagiCssVariant)
     .attr("data-fixture-css-sample", combination.cssSample)
     .attr("data-fixture-css-version", combination.cssVersion);
 
   return $.html();
 }
 
-async function writeHtmlVariants(captures) {
+async function writeBundleHtml(captures, bundles) {
   const written = [];
 
   for (const capture of captures) {
     const html = await fs.readFile(capture.sourcePath, "utf8");
     const domainInfoCapture = await readJsonIfExists(capture.domainInfoPath);
 
-    for (const variant of implementedHtmlVariants) {
+    for (const bundle of bundles) {
       const outputPath = path.join(
         generatedRoot,
         "html",
-        variant,
+        bundle.id,
         `${capture.id}.html`,
       );
       const variantHtml = buildHtmlVariant(
         html,
-        variant,
+        bundle.htmlVariant,
         capture,
         domainInfoCapture,
       );
@@ -1141,9 +1282,19 @@ async function writeHtmlVariants(captures) {
       );
       written.push({
         captureId: capture.id,
-        htmlVariant: variant,
+        bundleVariant: bundle.id,
+        htmlVariant: bundle.htmlVariant,
+        kagiCssVariant: bundle.kagiCssVariant,
+        kagiCssSource: bundle.kagiCssSource,
+        kagiCssPaths: bundle.kagiCssPaths,
         path: relativeProjectPath(outputPath),
-        bytes: Buffer.byteLength(variantHtml),
+        htmlBytes: Buffer.byteLength(variantHtml),
+        kagiAuthoredCssMetrics: bundle.kagiAuthoredCssMetrics,
+        totalBundleBytes:
+          bundle.kagiAuthoredCssMetrics?.minifiedBytes == null
+            ? null
+            : Buffer.byteLength(variantHtml) +
+              bundle.kagiAuthoredCssMetrics.minifiedBytes,
         domainInfo:
           rendererForCapture(capture) === "enhanced" && domainInfoCapture
             ? relativeProjectPath(capture.domainInfoPath)
@@ -1161,7 +1312,7 @@ async function writeMatrixPages(combinations) {
       path.join(projectRoot, combination.htmlPath),
       "utf8",
     );
-    const matrixHtml = injectCssLink(html, combination);
+    const matrixHtml = injectCssLinks(html, combination);
 
     await fs.writeFile(
       path.join(projectRoot, combination.matrixPath),
@@ -1178,8 +1329,9 @@ async function main() {
   const samples = manifest.samples ?? [];
   const captures = await listHtmlCaptures();
   const cssOptions = cssOptionsForSamples(samples);
-  const generatedHtml = await writeHtmlVariants(captures);
-  const matrix = plannedCombinations(samples, captures);
+  const bundles = await bundleOptions();
+  const generatedBundles = await writeBundleHtml(captures, bundles);
+  const matrix = plannedCombinations(samples, captures, bundles);
   const domainInfoCaptures = (
     await Promise.all(
       captures.map(async (capture) =>
@@ -1197,8 +1349,9 @@ async function main() {
 
   const summary = {
     status: captures.length === 0 ? "waiting-for-captures" : "ready",
-    plannedHtmlVariants,
-    implementedHtmlVariants,
+    plannedBundleVariants,
+    implementedBundleVariants,
+    bundles,
     captureFiles: captures.map((capture) => capture.fileName),
     domainInfoCaptures,
     cssSamples: samples.map((sample) => sample.id).sort(),
@@ -1209,7 +1362,7 @@ async function main() {
       path: cssOption.path,
       builtIn: cssOption.builtIn,
     })),
-    generatedHtml,
+    generatedBundles,
     generatedMatrixPageCount: matrix.length,
     nextStep:
       captures.length === 0
@@ -1233,7 +1386,8 @@ async function main() {
             (domainInfoCapture) => domainInfoCapture.captureId === capture.id,
           )?.path,
         })),
-        htmlVariants: implementedHtmlVariants,
+        bundleVariants: implementedBundleVariants,
+        bundles,
         cssSamples: samples.map((sample) => ({
           id: sample.id,
           name: sample.name,
@@ -1254,7 +1408,7 @@ async function main() {
   );
 
   console.log(
-    `Generated ${generatedHtml.length} HTML variant page(s) and ${matrix.length} matrix page(s) from ${captures.length} capture(s).`,
+    `Generated ${generatedBundles.length} bundle HTML page(s) and ${matrix.length} matrix page(s) from ${captures.length} capture(s).`,
   );
 }
 
