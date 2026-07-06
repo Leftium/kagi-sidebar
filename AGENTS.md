@@ -130,6 +130,29 @@ Recovery path for bad Custom CSS:
 https://kagi.com/search?q=test&no_css=1
 ```
 
+## Verification Workflow
+
+Prefer user visual verification over agent-driven screenshot and browser checks
+unless the user explicitly asks for automated validation. For CSS and fixture
+layout work, the highest-value default is:
+
+1. Make the focused code or CSS change.
+2. Share the exact generated/local URL or file path the user should inspect.
+3. Describe the specific visual state to check.
+
+Do not spend time running broad browser probes, screenshot sweeps, Playwright
+measurements, or full fixture commands just to prove visual correctness. Ask
+first before running expensive verification such as `pnpm generate`,
+`pnpm audit-css`, `pnpm check-js-popovers`, or browser automation loops. Cheap
+static checks are fine when they directly catch edit mistakes, such as syntax
+checks for touched scripts, CSS parsing, formatting checks, and `git diff
+--check`.
+
+If an automated check is still useful, keep it narrow and explain why it is
+worth running before doing it. Stop once the check answers the specific
+question; do not keep adding alternative tools after the user can verify faster
+by looking at the page.
+
 ## Browser And Tooling Notes
 
 The T3 Code collaborative browser worked for live Kagi DOM inspection:
@@ -173,6 +196,29 @@ Browser injection notes:
 
 Manual user verification is still required because Kagi Custom CSS persistence
 cannot be fully simulated by browser-side injection.
+
+When browser or tooling attempts fail repeatedly, update this section in the
+same turn with the working method and the failed methods to avoid rediscovering
+the same dead ends. Keep the note concrete: command, URL shape, browser tool,
+and why the failed path did not work.
+
+Local Playwright notes from July 2026:
+
+- Importing bare `playwright` failed in this checkout because only
+  `@playwright/test` was linked in `node_modules`.
+- The Playwright-managed Chromium binary was not installed. Do not run
+  `playwright install` without approval.
+- If a narrow local browser measurement is explicitly approved, using
+  `@playwright/test` with the system Chrome executable worked:
+
+```js
+import { chromium } from "@playwright/test";
+
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+});
+```
 
 ## Verification Checklist
 
