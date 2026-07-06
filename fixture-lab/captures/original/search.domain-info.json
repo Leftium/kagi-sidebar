@@ -1,0 +1,290 @@
+{
+  "sourceCapture": "fixture-lab/captures/original/search.html",
+  "sourceUrl": "https://kagi.com/search?q=kagi+css+selectors&no_css=1",
+  "event": "provider:domain_info",
+  "renderedDomains": [
+    "help.kagi.com",
+    "github.com",
+    "blog.kagi.com",
+    "reddit.com",
+    "kagi.readthedocs.io",
+    "corgi.ryanaque.com",
+    "x.com",
+    "hackage.haskell.org",
+    "gist.github.com",
+    "news.ycombinator.com",
+    "help.userguiding.com",
+    "openkagi.com",
+    "easy-talk.jizhiku.net",
+    "community.shopify.com",
+    "auphone.net",
+    "kagifeedback.org",
+    "codeberg.org",
+    "mastodon.social",
+    "blog.codepen.io"
+  ],
+  "payload": {
+    "too_many_rules": false,
+    "channel_metadata_unavailable_string": "Channel metadata is unavailable. Ranking is disabled for this result.",
+    "data": [
+      {
+        "domain": "help.kagi.com",
+        "bangs": "!api, !help, !orion",
+        "localizations": {
+          "trackers": "None detected"
+        },
+        "registration_date": "1993-11-18",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast"
+      },
+      {
+        "domain": "github.com",
+        "bangs": "!gh, !nr, !git, !ghn, !ghc",
+        "localizations": {
+          "ranked_traffic": "#37 by traffic",
+          "trackers": "None detected"
+        },
+        "registration_date": "2007-10-09",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast"
+      },
+      {
+        "domain": "blog.kagi.com",
+        "localizations": {
+          "trackers": "None detected"
+        },
+        "registration_date": "1993-11-18",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast"
+      },
+      {
+        "domain": "reddit.com",
+        "localizations": {
+          "ranked_traffic": "#31 by traffic",
+          "trackers": "None detected"
+        },
+        "registration_date": "2005-04-29",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0
+      },
+      {
+        "domain": "kagi.readthedocs.io",
+        "language": "English",
+        "localizations": {
+          "trackers": "None detected"
+        },
+        "registration_date": "2014-06-14",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast"
+      },
+      {
+        "domain": "corgi.ryanaque.com",
+        "language": "English",
+        "localizations": {
+          "trackers": "None detected"
+        },
+        "registration_date": "2025-06-09",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast"
+      },
+      {
+        "domain": "x.com",
+        "bangs": "!x, !twl, !twit, !twid, !xuser",
+        "localizations": {
+          "ranked_traffic": "#42,900 by traffic",
+          "trackers": "None detected"
+        },
+        "registration_date": "1993-04-02",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast",
+        "whois_org": "Domains By Proxy, LLC"
+      },
+      {
+        "domain": "hackage.haskell.org",
+        "bangs": "!hkg, !hckg, !hackage",
+        "localizations": {
+          "trackers": "None detected"
+        },
+        "registration_date": "1996-12-12",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0
+      },
+      {
+        "domain": "gist.github.com",
+        "bangs": "!gist",
+        "language": "English",
+        "localizations": {
+          "trackers": "None detected"
+        },
+        "registration_date": "2007-10-09",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast",
+        "whois_org": "GitHub, Inc."
+      },
+      {
+        "domain": "news.ycombinator.com",
+        "language": "English",
+        "localizations": {
+          "trackers": "3 detected"
+        },
+        "registration_date": "2005-03-20",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": "Fingerprinting, Google, Email, Analytics",
+        "trackers": 3,
+        "website_speed": "Fast",
+        "whois_org": "Y Combinator"
+      },
+      {
+        "domain": "help.userguiding.com",
+        "language": "English",
+        "localizations": {
+          "trackers": "6 detected"
+        },
+        "registration_date": "2017-12-20",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": "Analytics",
+        "trackers": 6,
+        "website_speed": "Fast",
+        "whois_org": "Contact Privacy Inc. Customer 1242052427"
+      },
+      {
+        "domain": "openkagi.com",
+        "language": "English",
+        "localizations": {
+          "trackers": "None detected"
+        },
+        "registration_date": "2025-08-20",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast"
+      },
+      {
+        "domain": "easy-talk.jizhiku.net",
+        "language": "Chinese",
+        "localizations": {
+          "trackers": "1 detected"
+        },
+        "registration_date": null,
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 1,
+        "website_speed": "Fast"
+      },
+      {
+        "domain": "community.shopify.com",
+        "localizations": {
+          "trackers": "None detected"
+        },
+        "registration_date": "2005-03-11",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0
+      },
+      {
+        "domain": "auphone.net",
+        "localizations": {},
+        "rule_type": null
+      },
+      {
+        "domain": "kagifeedback.org",
+        "bangs": "!kf, !kfd",
+        "language": "English",
+        "localizations": {
+          "trackers": "1 detected"
+        },
+        "registration_date": "2021-10-11",
+        "rss_link": [
+          {
+            "title": "Forum activity",
+            "url": "https://kagifeedback.org/atom"
+          },
+          {
+            "title": "Forum's new discussions",
+            "url": "https://kagifeedback.org/atom/discussions"
+          }
+        ],
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": "Analytics",
+        "trackers": 1,
+        "website_speed": "Fast"
+      },
+      {
+        "domain": "codeberg.org",
+        "bangs": "!codeberg",
+        "language": "English",
+        "localizations": {
+          "ranked_traffic": "#116,483 by traffic",
+          "trackers": "None detected"
+        },
+        "registration_date": "2018-07-05",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast"
+      },
+      {
+        "domain": "mastodon.social",
+        "bangs": "!msocial",
+        "language": "English",
+        "localizations": {
+          "ranked_traffic": "#10,348 by traffic",
+          "trackers": "None detected"
+        },
+        "registration_date": "2016-03-08",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast",
+        "whois_org": "Mastodon gGmbH"
+      },
+      {
+        "domain": "blog.codepen.io",
+        "localizations": {
+          "trackers": "None detected"
+        },
+        "registration_date": "2012-02-26",
+        "rule_type": null,
+        "scam_list_site": null,
+        "tracker_category": null,
+        "trackers": 0,
+        "website_speed": "Fast"
+      }
+    ],
+    "slop_stop_metadata": [],
+    "youtube_metadata": []
+  }
+}

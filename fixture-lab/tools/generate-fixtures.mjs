@@ -10,6 +10,7 @@ const projectRoot = path.resolve(
 
 const generatedRoot = path.join(projectRoot, "generated");
 const fixtureRoot = path.join(projectRoot, "fixture-lab");
+const captureRoot = path.join(fixtureRoot, "captures", "original");
 
 const plannedHtmlVariants = ["original", "backwards-compatible", "optimized"];
 const implementedHtmlVariants = [
@@ -44,6 +45,16 @@ const optimizedFilterToggleIds = new Map(
   ]),
 );
 
+const semanticFilterKinds = new Map([
+  ["matching", "multi-select"],
+  ["time", "single-select"],
+  ["region", "single-select"],
+  ["sort", "single-select"],
+  ["lens", "single-select"],
+]);
+
+const promotableFilters = new Set(["matching", "time", "region"]);
+
 async function pathExists(filePath) {
   try {
     await fs.access(filePath);
@@ -58,8 +69,16 @@ async function readJson(filePath) {
   return JSON.parse(raw);
 }
 
+async function readJsonIfExists(filePath) {
+  if (!(await pathExists(filePath))) {
+    return null;
+  }
+
+  return readJson(filePath);
+}
+
 async function listHtmlCaptures() {
-  const captureDir = path.join(fixtureRoot, "captures", "original");
+  const captureDir = captureRoot;
 
   if (!(await pathExists(captureDir))) {
     return [];
@@ -72,6 +91,10 @@ async function listHtmlCaptures() {
       id: path.basename(entry.name, ".html"),
       fileName: entry.name,
       sourcePath: path.join(captureDir, entry.name),
+      domainInfoPath: path.join(
+        captureDir,
+        `${path.basename(entry.name, ".html")}.domain-info.json`,
+      ),
     }))
     .sort(compareCaptures);
 }
@@ -161,12 +184,154 @@ function toKagiAssetUrl(value) {
   return value;
 }
 
-function prepareForLocalViewing(html) {
+function assetRevisionFromHref(value) {
+  if (!value) {
+    return null;
+  }
+
+  const url = new URL(value, kagiOrigin);
+  const assetMatch = url.pathname.match(/^\/asset\/([^/]+)\//);
+
+  if (!assetMatch) {
+    return null;
+  }
+
+  return {
+    assetId: assetMatch[1],
+    version: url.searchParams.get("v"),
+  };
+}
+
+function capturedAssetRevision($) {
+  for (const element of $("link[href]").toArray()) {
+    const revision = assetRevisionFromHref($(element).attr("href"));
+
+    if (revision) {
+      return revision;
+    }
+  }
+
+  return null;
+}
+
+function kagiRuntimeScriptUrls($) {
+  const revision = capturedAssetRevision($);
+
+  if (!revision) {
+    return [];
+  }
+
+  const suffix = revision.version
+    ? `?v=${encodeURIComponent(revision.version)}`
+    : "";
+
+  return ["k_sea.js", "k_serp.js"].map(
+    (fileName) =>
+      `${kagiOrigin}/asset/${revision.assetId}/js/${fileName}${suffix}`,
+  );
+}
+
+function runtimeState($, capture) {
+  if (rendererForCapture(capture) !== "enhanced") {
+    return "none";
+  }
+
+  if ($("script").length) {
+    return "source";
+  }
+
+  return "none";
+}
+
+function ensureEnhancedRuntimeScripts($, capture) {
+  if (runtimeState($, capture) !== "none") {
+    return [];
+  }
+
+  if (rendererForCapture(capture) !== "enhanced") {
+    return [];
+  }
+
+  const scriptUrls = kagiRuntimeScriptUrls($);
+
+  for (const src of scriptUrls) {
+    $("head").append(
+      `\n    <script src="${src}" data-fixture-runtime="kagi"></script>`,
+    );
+  }
+
+  return scriptUrls;
+}
+
+function jsonForInlineScript(value) {
+  return JSON.stringify(value).replaceAll("<", "\\u003c");
+}
+
+function domainInfoPayload(domainInfoCapture) {
+  return domainInfoCapture?.payload ?? null;
+}
+
+function injectDomainInfoReplay($, capture, domainInfoCapture) {
+  const payload = domainInfoPayload(domainInfoCapture);
+
+  if (rendererForCapture(capture) !== "enhanced" || !payload) {
+    return "none";
+  }
+
+  const script = `
+    <script data-fixture-domain-info="captured">
+      (() => {
+        const payload = ${jsonForInlineScript(payload)};
+        window.__kagiFixtureDomainInfoPayload = payload;
+
+        const dispatch = () => {
+          window.dispatchEvent(
+            new CustomEvent("provider:domain_info", {
+              detail: { payload },
+            }),
+          );
+        };
+
+        const replayWhenRuntimeIsReady = (attempt = 0) => {
+          if (typeof window.openDomainInfo === "function") {
+            dispatch();
+            return;
+          }
+
+          if (attempt < 100) {
+            window.setTimeout(() => replayWhenRuntimeIsReady(attempt + 1), 50);
+          }
+        };
+
+        if (document.readyState === "loading") {
+          document.addEventListener(
+            "DOMContentLoaded",
+            () => replayWhenRuntimeIsReady(),
+            { once: true },
+          );
+        } else {
+          replayWhenRuntimeIsReady();
+        }
+      })();
+    </script>`;
+
+  $("head").append(script);
+  $("html").attr("data-fixture-domain-info", "captured");
+
+  return "captured";
+}
+
+function prepareForLocalViewing(html, capture, domainInfoCapture) {
   const $ = cheerio.load(html, { decodeEntities: false });
 
   $("link[href]").each((_, element) => {
     const node = $(element);
     node.attr("href", toKagiAssetUrl(node.attr("href")));
+  });
+
+  $("script[src]").each((_, element) => {
+    const node = $(element);
+    node.attr("src", toKagiAssetUrl(node.attr("src")));
   });
 
   $("img[src], source[src], video[poster]").each((_, element) => {
@@ -200,23 +365,180 @@ function prepareForLocalViewing(html) {
     );
   });
 
+  const sourceRuntime = runtimeState($, capture);
+  const inferredRuntimeScripts = ensureEnhancedRuntimeScripts($, capture);
+  const runtime =
+    sourceRuntime !== "none"
+      ? sourceRuntime
+      : inferredRuntimeScripts.length
+        ? "inferred-kagi"
+        : "none";
+  const domainInfo = injectDomainInfoReplay($, capture, domainInfoCapture);
+
+  $("html").attr("data-fixture-js-runtime", runtime);
+  $("html").attr("data-fixture-domain-info", domainInfo);
+
   return $.html();
+}
+
+function rendererForCapture(capture) {
+  return capture.id === "html-search" ? "basic" : "enhanced";
+}
+
+function resultModeFromPath(value) {
+  if (!value) {
+    return null;
+  }
+
+  const url = new URL(value, kagiOrigin);
+  const pathname = url.pathname.replace(/^\/html(?=\/)/, "");
+  const firstSegment = pathname.split("/").filter(Boolean)[0] ?? "search";
+
+  if (firstSegment === "search") {
+    return "web";
+  }
+
+  return firstSegment || null;
+}
+
+function addResultNavigationHooks($) {
+  $("#tonav")
+    .attr("data-kagi-search-tabs", "")
+    .attr("data-kagi-result-nav", "");
+
+  $("#tonav")
+    .find("a[href], button[formaction]")
+    .each((_, element) => {
+      const node = $(element);
+      const mode = resultModeFromPath(
+        node.attr("href") ?? node.attr("formaction"),
+      );
+
+      if (!mode) {
+        return;
+      }
+
+      node.attr("data-kagi-result-mode-link", mode);
+
+      if (/\b--active\b/.test(node.attr("class") ?? "")) {
+        node.attr("aria-current", "page");
+      }
+    });
+}
+
+function addResultActionHooks($) {
+  $(".__sri_more_menu")
+    .attr("data-kagi-popover", "")
+    .attr("data-kagi-action-menu", "");
+  $(".__sri_more_menu ._0_k_ui_dropdown_first_item button").attr(
+    "data-kagi-popover-trigger",
+    "",
+  );
+  $(".__sri_more_menu ._0_k_ui_dropdown_data_list").attr(
+    "data-kagi-popover-panel",
+    "",
+  );
+
+  $("._0_rank-icons")
+    .attr("data-kagi-result-rank-control", "")
+    .attr("data-kagi-action", "domain-info");
+  $("#domainInfoModal")
+    .attr("data-kagi-popover", "domain-info")
+    .attr("data-kagi-popover-panel", "")
+    .attr("data-kagi-action-panel", "domain-info");
+  $("#domainInfoModal .ranked-box-close").attr(
+    "data-kagi-action",
+    "close-domain-info",
+  );
+  $("#domainInfoModal ._0_d_info_rank_btns").attr(
+    "data-kagi-rank-control-group",
+    "",
+  );
+  $("#domainInfoModal input[name='domain_rank']").each((_, element) => {
+    const input = $(element);
+    const id = input.attr("id");
+    const rankActionByKind = new Map([
+      ["-2", "rank-block"],
+      ["-1", "rank-lower"],
+      ["0", "rank-normal"],
+      ["1", "rank-raise"],
+      ["2", "rank-pin"],
+    ]);
+
+    input.attr("data-kagi-rank-value", input.attr("data-kind") ?? "");
+
+    if (id) {
+      $(`#domainInfoModal label[for="${id}"]`)
+        .attr(
+          "data-kagi-action",
+          rankActionByKind.get(input.attr("data-kind")) ?? "rank-adjust",
+        )
+        .attr("data-kagi-rank-option", "");
+    }
+  });
+  $("._0_summarize_page").attr("data-kagi-action", "summarize");
+  $("._0_discuss_document").attr("data-kagi-action", "discuss");
+  $("#load_more_results").attr("data-kagi-action", "load-more");
+
+  $("a, button").each((_, element) => {
+    const node = $(element);
+    const text = normalizeText(node.text());
+
+    if (text === "More results from this site") {
+      node.attr("data-kagi-action", "more-from-site");
+    } else if (text === "Remove results from this site") {
+      node.attr("data-kagi-action", "remove-site");
+    } else if (text === "Open page in Web Archive") {
+      node.attr("data-kagi-action", "web-archive");
+    }
+  });
+}
+
+function addWidgetHooks($) {
+  $(".related-searches")
+    .attr("data-kagi-widget", "related-searches")
+    .find(".related-items")
+    .attr("data-kagi-widget-body", "");
+  $("#interesting_finds").attr("data-kagi-widget", "interesting-finds");
+  $(".widget_holder").attr("data-kagi-widget", "dynamic-results");
 }
 
 function addSemanticPageHooks($, capture, variant) {
   $("html").attr("data-kagi-fixture-capture", capture.id);
   $("body")
+    .attr("data-kagi-contract", "search-dom-v0")
+    .attr("data-kagi-surface", "search")
+    .attr("data-kagi-result-mode", "web")
+    .attr("data-kagi-renderer", rendererForCapture(capture))
     .attr("data-kagi-page", "search")
     .attr("data-kagi-mode", "web")
     .attr("data-kagi-fixture-variant", variant);
 
-  $("header.app-header").attr("data-kagi-app-header", "");
-  $(".top-panel-box").attr("data-kagi-top-panel", "");
-  $("#_0_app_content").attr("data-kagi-result-page", "");
+  $("header.app-header")
+    .attr("data-kagi-app-header", "")
+    .attr("data-kagi-layout-slot", "app-header");
+  $(".top-panel-box")
+    .attr("data-kagi-top-panel", "")
+    .attr("data-kagi-layout-slot", "search-header");
+  $("#_0_app_content")
+    .attr("data-kagi-result-page", "")
+    .attr("data-kagi-layout-slot", "result-page");
   $("#searchForm").attr("data-kagi-search-form", "");
-  $("#tonav").attr("data-kagi-search-tabs", "");
-  $("._0_filters-panel").attr("data-kagi-filter-panel", "");
-  $("#sidebarForm").attr("data-kagi-search-filters", "");
+  $("#searchForm")
+    .find('[name="q"]')
+    .first()
+    .attr("data-kagi-search-input", "");
+  $("#searchForm")
+    .find('button[type="submit"], input[type="submit"]')
+    .first()
+    .attr("data-kagi-search-submit", "");
+  addResultNavigationHooks($);
+  $("._0_filters-panel")
+    .attr("data-kagi-filter-panel", "")
+    .attr("data-kagi-layout-slot", "search-controls");
+  $("#sidebarForm")
+    .attr("data-kagi-search-filters", "")
+    .attr("data-kagi-filter-form", "");
 
   for (const [selector, filterName] of semanticFilterHooks) {
     const toggle = $(selector);
@@ -224,12 +546,30 @@ function addSemanticPageHooks($, capture, variant) {
 
     toggle.attr("data-kagi-filter-toggle", filterName);
     filter.attr("data-kagi-filter", filterName);
+    filter.attr(
+      "data-kagi-filter-kind",
+      semanticFilterKinds.get(filterName) ?? "single-select",
+    );
+
+    if (promotableFilters.has(filterName)) {
+      filter.attr("data-kagi-promotable", "true");
+    }
+
     filter
       .find(".dd-toggle-label")
       .first()
-      .attr("data-kagi-filter-trigger", "");
+      .attr("data-kagi-filter-trigger", "")
+      .attr("aria-expanded", toggle.is(":checked") ? "true" : "false");
     filter.find(".dd-list").first().attr("data-kagi-filter-options", "");
     filter.find(".inner-label").attr("data-kagi-filter-option", "");
+    filter.find(".dd-section").each((_, section) => {
+      const node = $(section);
+      const sectionName = node.attr("data-name");
+
+      if (sectionName) {
+        node.attr("data-kagi-filter-section", sectionName);
+      }
+    });
 
     if (filterName === "region") {
       filter.find(".list_filter_wrpr").attr("data-kagi-filter-search", "");
@@ -248,13 +588,33 @@ function addSemanticPageHooks($, capture, variant) {
     .find("a, button")
     .attr("data-kagi-action", "clear-filters");
 
-  $("._0_SRI, .search-result").attr("data-kagi-result", "");
+  $("._0_main-search-results")
+    .attr("data-kagi-results", "")
+    .attr("data-kagi-layout-slot", "result-list");
+  $(".sri-group").attr("data-kagi-result-group", "");
+  $("._0_SRI, .search-result")
+    .attr("data-kagi-result", "")
+    .attr("data-kagi-result-type", "organic");
+  $(".sr-group").attr("data-kagi-result-group", "subresults");
+  $(".sr-group .__srgi")
+    .attr("data-kagi-result", "")
+    .attr("data-kagi-result-type", "grouped");
+  $(".__sri-title, ._0_TITLE").attr("data-kagi-result-title", "");
   $("a.__sri_title_link, .__sri-title-box > a, .__srgi-title > a").attr(
     "data-kagi-result-title",
     "",
   );
+  $("a.__sri_title_link, .__sri-title-box > a, .__srgi-title > a").attr(
+    "data-kagi-result-title-link",
+    "",
+  );
   $(".__sri-url, .__sri-url-box a").attr("data-kagi-result-url", "");
-  $(".__sri-desc, ._0_DESC").attr("data-kagi-result-description", "");
+  $(".__sri-desc, ._0_DESC")
+    .attr("data-kagi-result-description", "")
+    .attr("data-kagi-result-snippet", "");
+  $(".__sri_more_menu_box").attr("data-kagi-result-actions", "");
+  addResultActionHooks($);
+  addWidgetHooks($);
 }
 
 function addBackwardsCompatibleHooks(html, capture) {
@@ -315,14 +675,16 @@ function optimizeFilterShell($) {
   renameOptimizedFilterToggles($);
 }
 
-function regionFormState(regionLinks) {
+function filterFormState(optionLinks, removedParams) {
   const activeHref =
-    regionLinks.filter('[aria-current="true"]').first().attr("href") ??
-    regionLinks.first().attr("href") ??
+    optionLinks.filter('[aria-current="true"]').first().attr("href") ??
+    optionLinks.first().attr("href") ??
     "/search";
   const url = new URL(activeHref, kagiOrigin);
 
-  url.searchParams.delete("r");
+  for (const param of removedParams) {
+    url.searchParams.delete(param);
+  }
 
   return {
     action: url.pathname,
@@ -330,10 +692,219 @@ function regionFormState(regionLinks) {
   };
 }
 
+function regionFormState(regionLinks) {
+  return filterFormState(regionLinks, ["r"]);
+}
+
 function appendHiddenInputs($, form, params) {
   for (const [name, value] of params) {
     form.append($("<input>").attr({ type: "hidden", name, value }));
   }
+}
+
+function buildGetForm($, state, attrs = {}) {
+  const form = $("<form></form>").attr({
+    method: "get",
+    action: state.action,
+    ...attrs,
+  });
+
+  appendHiddenInputs($, form, state.params);
+  return form;
+}
+
+function filterTriggerText(filter, fallback) {
+  return (
+    normalizeText(
+      filter.find("[data-kagi-filter-trigger] .textContent").text(),
+    ) ||
+    normalizeText(filter.find("[data-kagi-filter-trigger]").text()) ||
+    fallback
+  );
+}
+
+function buildFilterSummary($, labelText) {
+  const summary = $("<summary></summary>")
+    .attr("data-kagi-filter-trigger", "")
+    .attr("aria-expanded", "false");
+  const label = $("<span></span>")
+    .attr("data-kagi-filter-label", "")
+    .text(labelText);
+  const caret = $("<span></span>")
+    .attr("aria-hidden", "true")
+    .attr("data-kagi-filter-caret", "")
+    .text("\u25be");
+
+  summary.append(label, caret);
+  return summary;
+}
+
+function filterOptionButtonFromLink($, link, fallbackName) {
+  const source = $(link);
+  const name = source.attr("data-name") ?? fallbackName;
+
+  if (!name) {
+    return null;
+  }
+
+  const href = source.attr("href");
+  const targetValue = href
+    ? new URL(href, kagiOrigin).searchParams.get(name)
+    : null;
+  const value = targetValue ?? source.attr("data-value") ?? "";
+  const button = $("<button></button>");
+
+  button
+    .attr("type", "submit")
+    .attr("name", name)
+    .attr("value", value)
+    .attr("data-kagi-filter-option", "")
+    .text(normalizeText(source.text()));
+
+  if (source.attr("aria-current") != null) {
+    button.attr("aria-current", source.attr("aria-current"));
+  }
+
+  return button;
+}
+
+function appendFilterOptionButtons($, parent, links, fallbackName, decorate) {
+  links.each((_, link) => {
+    const button = filterOptionButtonFromLink($, link, fallbackName);
+
+    if (!button) {
+      return;
+    }
+
+    decorate?.(button, $(link));
+    parent.append(button);
+  });
+}
+
+function optimizeMatchingFilter($) {
+  const matchingFilter = $('[data-kagi-filter="matching"]').first();
+  const optionLinks = matchingFilter.find(
+    "[data-kagi-filter-option][data-name]",
+  );
+
+  if (!matchingFilter.length || !optionLinks.length) {
+    return;
+  }
+
+  const optionNames = [
+    ...new Set(
+      optionLinks
+        .map((_, link) => $(link).attr("data-name"))
+        .get()
+        .filter(Boolean),
+    ),
+  ];
+  const state = filterFormState(optionLinks, optionNames);
+  const form = buildGetForm($, state, {
+    "data-kagi-filter-options": "",
+    "data-kagi-matching-form": "",
+  });
+
+  appendFilterOptionButtons($, form, optionLinks);
+  matchingFilter.empty().append(form);
+  removeClasses(matchingFilter, ["dropdown", "filter-item"]);
+}
+
+function optimizeTimeFilter($) {
+  const timeFilter = $('[data-kagi-filter="time"]').first();
+  const optionLinks = timeFilter.find(
+    '[data-kagi-filter-option][data-name="dr"]',
+  );
+
+  if (!timeFilter.length || !optionLinks.length) {
+    return;
+  }
+
+  const state = filterFormState(optionLinks, ["dr", "from_date", "to_date"]);
+  const details = $("<details></details>").attr("data-kagi-filter-menu", "");
+  const form = buildGetForm($, state, {
+    "data-kagi-filter-options": "",
+    "data-kagi-time-form": "",
+  });
+  const presetSection = $("<div></div>").attr(
+    "data-kagi-filter-section",
+    "presets",
+  );
+  const customDateControls = timeFilter
+    .find(".custom-date-range, .img-min-max-sub")
+    .clone();
+  const preview = buildGetForm($, state, {
+    "data-kagi-filter-preview": "",
+    "data-kagi-time-preview": "",
+  });
+
+  appendFilterOptionButtons($, presetSection, optionLinks, "dr");
+  form.append(presetSection);
+
+  if (customDateControls.length) {
+    const customSection = $("<div></div>").attr(
+      "data-kagi-filter-section",
+      "custom-range",
+    );
+
+    customDateControls
+      .find('button[type="submit"], button:not([type])')
+      .attr("type", "submit")
+      .attr("data-kagi-action", "date-range-search");
+    customSection.append(customDateControls);
+    form.append(customSection);
+  }
+
+  appendFilterOptionButtons($, preview, optionLinks.slice(0, 5), "dr");
+  details.append(buildFilterSummary($, filterTriggerText(timeFilter, "Time")));
+  details.append(form);
+  timeFilter.empty().append(details, preview);
+  removeClasses(timeFilter, ["dropdown", "filter-item"]);
+}
+
+function optimizeSortFilter($) {
+  const sortFilter = $('[data-kagi-filter="sort"]').first();
+  const optionLinks = sortFilter.find("[data-kagi-filter-option][data-name]");
+
+  if (!sortFilter.length || !optionLinks.length) {
+    return;
+  }
+
+  const state = filterFormState(optionLinks, ["order", "dir"]);
+  const details = $("<details></details>").attr("data-kagi-filter-menu", "");
+  const form = buildGetForm($, state, {
+    "data-kagi-filter-options": "",
+    "data-kagi-sort-form": "",
+  });
+
+  sortFilter.find("[data-kagi-filter-section]").each((_, section) => {
+    const sourceSection = $(section);
+    const sectionName = sourceSection.attr("data-kagi-filter-section");
+    const nextSection = $("<div></div>").attr(
+      "data-kagi-filter-section",
+      sectionName ?? "",
+    );
+
+    appendFilterOptionButtons(
+      $,
+      nextSection,
+      sourceSection.find("[data-kagi-filter-option][data-name]"),
+      sectionName,
+    );
+
+    if (nextSection.children().length) {
+      form.append(nextSection);
+    }
+  });
+
+  if (!form.find("[data-kagi-filter-option]").length) {
+    appendFilterOptionButtons($, form, optionLinks);
+  }
+
+  details.append(buildFilterSummary($, filterTriggerText(sortFilter, "Sort")));
+  details.append(form);
+  sortFilter.empty().append(details);
+  removeClasses(sortFilter, ["dropdown", "filter-item"]);
 }
 
 function regionButtonFromLink($, link) {
@@ -411,24 +982,14 @@ function optimizeRegionFilter($) {
   }
 
   const state = regionFormState(regionLinks);
-  const triggerText = normalizeText(
-    regionFilter.find("[data-kagi-filter-trigger] .textContent").first().text(),
-  );
+  const triggerText = filterTriggerText(regionFilter, "Region");
   const details = $("<details></details>").attr("data-kagi-filter-menu", "");
-  const summary = $("<summary></summary>").attr("data-kagi-filter-trigger", "");
-  const label = $("<span></span>")
-    .attr("data-kagi-filter-label", "")
-    .text(triggerText || "Region");
-  const caret = $("<span></span>")
-    .attr("aria-hidden", "true")
-    .attr("data-kagi-filter-caret", "")
-    .text("\u25be");
   const recentRegionLinks = regionLinks
     .filter((_, link) => $(link).closest("li").attr("data-recent") != null)
     .slice(0, 4);
 
-  summary.append(label, caret);
-  details.append(summary, buildRegionForm($, state, regionLinks));
+  details.append(buildFilterSummary($, triggerText));
+  details.append(buildRegionForm($, state, regionLinks));
 
   regionFilter
     .empty()
@@ -441,22 +1002,31 @@ function buildOptimizedHtml(html, capture) {
 
   addSemanticPageHooks($, capture, "optimized");
   optimizeFilterShell($);
+  optimizeMatchingFilter($);
+  optimizeTimeFilter($);
+  optimizeSortFilter($);
   optimizeRegionFilter($);
 
   return $.html();
 }
 
-function buildHtmlVariant(html, variant, capture) {
+function buildHtmlVariant(html, variant, capture, domainInfoCapture) {
   if (variant === "original") {
-    return prepareForLocalViewing(html);
+    return prepareForLocalViewing(html, capture, domainInfoCapture);
   }
 
   if (variant === "backwards-compatible") {
-    return addBackwardsCompatibleHooks(prepareForLocalViewing(html), capture);
+    return addBackwardsCompatibleHooks(
+      prepareForLocalViewing(html, capture, domainInfoCapture),
+      capture,
+    );
   }
 
   if (variant === "optimized") {
-    return buildOptimizedHtml(prepareForLocalViewing(html), capture);
+    return buildOptimizedHtml(
+      prepareForLocalViewing(html, capture, domainInfoCapture),
+      capture,
+    );
   }
 
   throw new Error(`Unsupported HTML variant: ${variant}`);
@@ -549,6 +1119,7 @@ async function writeHtmlVariants(captures) {
 
   for (const capture of captures) {
     const html = await fs.readFile(capture.sourcePath, "utf8");
+    const domainInfoCapture = await readJsonIfExists(capture.domainInfoPath);
 
     for (const variant of implementedHtmlVariants) {
       const outputPath = path.join(
@@ -557,7 +1128,12 @@ async function writeHtmlVariants(captures) {
         variant,
         `${capture.id}.html`,
       );
-      const variantHtml = buildHtmlVariant(html, variant, capture);
+      const variantHtml = buildHtmlVariant(
+        html,
+        variant,
+        capture,
+        domainInfoCapture,
+      );
 
       await fs.writeFile(
         outputPath,
@@ -568,6 +1144,10 @@ async function writeHtmlVariants(captures) {
         htmlVariant: variant,
         path: relativeProjectPath(outputPath),
         bytes: Buffer.byteLength(variantHtml),
+        domainInfo:
+          rendererForCapture(capture) === "enhanced" && domainInfoCapture
+            ? relativeProjectPath(capture.domainInfoPath)
+            : null,
       });
     }
   }
@@ -600,6 +1180,18 @@ async function main() {
   const cssOptions = cssOptionsForSamples(samples);
   const generatedHtml = await writeHtmlVariants(captures);
   const matrix = plannedCombinations(samples, captures);
+  const domainInfoCaptures = (
+    await Promise.all(
+      captures.map(async (capture) =>
+        (await pathExists(capture.domainInfoPath))
+          ? {
+              captureId: capture.id,
+              path: relativeProjectPath(capture.domainInfoPath),
+            }
+          : null,
+      ),
+    )
+  ).filter(Boolean);
 
   await writeMatrixPages(matrix);
 
@@ -608,6 +1200,7 @@ async function main() {
     plannedHtmlVariants,
     implementedHtmlVariants,
     captureFiles: captures.map((capture) => capture.fileName),
+    domainInfoCaptures,
     cssSamples: samples.map((sample) => sample.id).sort(),
     cssOptions: cssOptions.map((cssOption) => ({
       sampleId: cssOption.sampleId,
@@ -636,6 +1229,9 @@ async function main() {
         captures: captures.map((capture) => ({
           id: capture.id,
           file: relativeProjectPath(capture.sourcePath),
+          domainInfoFile: domainInfoCaptures.find(
+            (domainInfoCapture) => domainInfoCapture.captureId === capture.id,
+          )?.path,
         })),
         htmlVariants: implementedHtmlVariants,
         cssSamples: samples.map((sample) => ({

@@ -182,7 +182,7 @@
           [data-kagi-filter="region"]
         )
         [data-kagi-filter-trigger],
-      [data-kagi-action] {
+      [data-kagi-filter-action] [data-kagi-action] {
         display: flex !important;
         align-items: center;
         justify-content: space-between;
@@ -210,7 +210,7 @@
           [data-kagi-filter-trigger],
         [data-kagi-filter-menu][open] > [data-kagi-filter-trigger],
         [data-kagi-filter-trigger]:hover,
-        [data-kagi-action]:hover
+        [data-kagi-filter-action] [data-kagi-action]:hover
       ) {
         border-color: color-mix(
           in srgb,
@@ -527,7 +527,7 @@
         }
       }
 
-      [data-kagi-action] {
+      [data-kagi-filter-action] [data-kagi-action] {
         justify-content: center;
         width: 100% !important;
         text-align: center;
