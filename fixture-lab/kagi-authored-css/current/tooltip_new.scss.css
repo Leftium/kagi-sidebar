@@ -1,0 +1,186 @@
+.trigger {
+  position: relative;
+}
+.tooltip {
+  transition-behavior: allow-discrete;
+  border-radius: 0.75rem;
+  display: none;
+  filter: drop-shadow(1px 8px 30px var(--box-shadow));
+  max-width: 90vw;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transition:
+    opacity 0.1s,
+    display 0.1s,
+    margin 0.1s;
+  width: max-content;
+  z-index: 9999;
+}
+.js-has-pseudo
+  .trigger:not(:hover):not(
+    [csstools-has-1m-2w-2p-37-14-1m-2u-33-2r-39-37-19-3a-2x-37-2x-2q-30-2t-15]
+  )
+  > .tooltip {
+  margin: 0;
+}
+.trigger:not(:hover):not(:has(:focus-visible)) > .tooltip {
+  margin: 0;
+}
+.trigger > .tooltip:before {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: -1;
+}
+.trigger > .tooltip.top {
+  margin-bottom: var(--offset, 0);
+}
+.trigger > .tooltip.top:before {
+  height: calc(8px + var(--offset, 0));
+  left: 0;
+  right: 0;
+  top: 100%;
+}
+.trigger > .tooltip.bottom {
+  margin-top: var(--offset, 0);
+}
+.trigger > .tooltip.bottom:before {
+  bottom: 100%;
+  height: calc(8px + var(--offset, 0));
+  left: 0;
+  right: 0;
+}
+.trigger > .tooltip.right {
+  margin-left: var(--offset, 0);
+}
+.trigger > .tooltip.right:before {
+  bottom: 0;
+  right: 100%;
+  top: 0;
+  width: calc(8px + var(--offset, 0));
+}
+.trigger > .tooltip.left {
+  margin-right: var(--offset, 0);
+}
+.trigger > .tooltip.left:before {
+  bottom: 0;
+  left: 100%;
+  top: 0;
+  width: calc(8px + var(--offset, 0));
+}
+.trigger > .tooltip.top {
+  bottom: 100%;
+}
+.trigger > .tooltip.left {
+  right: 100%;
+}
+.trigger > .tooltip.bottom {
+  top: 100%;
+}
+.trigger > .tooltip.right {
+  left: 100%;
+}
+.trigger > .tooltip.center:is(.top, .bottom) {
+  left: 50%;
+  transform: translateX(-50%);
+}
+.trigger > .tooltip.center:is(.left, .right) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.trigger > .tooltip.start:is(.top, .bottom) {
+  left: 0;
+}
+.trigger > .tooltip.end:is(.top, .bottom) {
+  right: 0;
+}
+.trigger > .tooltip.start:is(.left, .right) {
+  top: 0;
+}
+.trigger > .tooltip.end:is(.left, .right) {
+  bottom: 0;
+}
+.js-has-pseudo
+  .trigger:is(
+    :hover,
+    [csstools-has-w-1m-2w-2p-37-14-1m-2u-33-2r-39-37-19-3a-2x-37-2x-2q-30-2t-15]
+  )
+  > .tooltip {
+  display: block;
+  opacity: 1;
+  pointer-events: all;
+}
+.trigger:is(:hover, :has(:focus-visible)) > .tooltip {
+  display: block;
+  opacity: 1;
+  pointer-events: all;
+}
+@starting-style {
+  .js-has-pseudo
+    .trigger:is(
+      :hover,
+      [csstools-has-w-1m-2w-2p-37-14-1m-2u-33-2r-39-37-19-3a-2x-37-2x-2q-30-2t-15]
+    )
+    > .tooltip {
+    margin: 0;
+    opacity: 0;
+  }
+  .trigger:is(:hover, :has(:focus-visible)) > .tooltip {
+    margin: 0;
+    opacity: 0;
+  }
+}
+.k-tooltip {
+  background-color: var(--k-tooltip-bg);
+  border-radius: 4px;
+  color: var(--secondary);
+  font-size: 0.75rem;
+  font-style: normal;
+  line-height: 1.125rem;
+  padding: 16px;
+  position: absolute;
+  width: 390px;
+  z-index: 60;
+}
+.k-tooltip:after {
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid var(--k-tooltip-bg);
+  bottom: -8px;
+  content: "";
+  height: 0;
+  position: absolute;
+  right: 19px;
+  width: 0;
+}
+.k-tooltip:before {
+  bottom: -7px;
+  content: "";
+  display: block;
+  height: 7px;
+  left: 0;
+  position: absolute;
+  width: 100%;
+}
+.tooltip_base {
+  background-color: var(--k-tooltip-bg);
+  border-radius: 4px;
+  color: var(--k-tooltip-text);
+  font-size: 0.75rem;
+  font-style: normal;
+  line-height: 1.125rem;
+  max-width: min(100vw, 390px);
+  padding: 16px;
+  position: absolute;
+  z-index: 99;
+}
+.tooltip_base a {
+  color: inherit;
+  text-decoration: underline;
+}
+@media (forced-colors: active) {
+  .k-tooltip {
+    outline: 1px solid;
+  }
+}

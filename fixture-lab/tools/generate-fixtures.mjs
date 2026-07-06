@@ -19,29 +19,38 @@ const implementedBundleVariants = [
   "backwards-compatible",
   "optimized",
 ];
+const currentKagiCssPaths = [
+  "fixture-lab/kagi-authored-css/current/search-layout.scss.css",
+  "fixture-lab/kagi-authored-css/current/main-search-results.scss.css",
+  "fixture-lab/kagi-authored-css/current/kagi_themes.scss.css",
+  "fixture-lab/kagi-authored-css/current/framework__main.scss.css",
+  "fixture-lab/kagi-authored-css/current/tooltip_new.scss.css",
+];
+const optimizedKagiCssPaths = [
+  ...currentKagiCssPaths,
+  "fixture-lab/kagi-authored-css/optimized/search-controls.css",
+];
 const bundleDefinitions = [
   {
     id: "original",
     htmlVariant: "original",
     kagiCssVariant: "current",
-    kagiCssSource: "captured-remote",
-    kagiCssPaths: [],
+    kagiCssSource: "captured-vendored",
+    kagiCssPaths: currentKagiCssPaths,
   },
   {
     id: "backwards-compatible",
     htmlVariant: "backwards-compatible",
     kagiCssVariant: "current",
-    kagiCssSource: "captured-remote",
-    kagiCssPaths: [],
+    kagiCssSource: "captured-vendored",
+    kagiCssPaths: currentKagiCssPaths,
   },
   {
     id: "optimized",
     htmlVariant: "optimized",
     kagiCssVariant: "optimized",
     kagiCssSource: "local-lab",
-    kagiCssPaths: [
-      "fixture-lab/kagi-authored-css/optimized/search-controls.css",
-    ],
+    kagiCssPaths: optimizedKagiCssPaths,
   },
 ].filter((bundle) => implementedBundleVariants.includes(bundle.id));
 const preferredCaptureOrder = ["search", "html-search"];

@@ -18,6 +18,12 @@ Keep the release scoped to Kagi web search (`/search`) on desktop. Images,
 Videos, News, Podcasts, Maps, Assistant, settings pages, and mobile/narrow
 viewports are out of scope unless the user explicitly expands the target.
 
+For the fixture lab proposal, the optimization surface is the entire Kagi search
+results DOM and all Kagi-authored CSS loaded by that page. Do not model the
+proposal as only the search controls, sidebar, or a single replacement
+stylesheet. Bundle metrics should include the full HTML document plus the full
+Kagi-authored CSS surface; user Custom CSS metrics stay separate.
+
 ## Git Workflow
 
 Before reasoning about modified files or ownership of changes, check all three:
