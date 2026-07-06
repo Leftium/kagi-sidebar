@@ -11,6 +11,10 @@ controls, options, states, and layout slots.
 This does not assume Kagi should ship a sidebar. The sidebar is only the
 motivating case study.
 
+Companion contract draft:
+[`kagi-semantic-dom-contract.md`](kagi-semantic-dom-contract.md) names the
+semantic DOM hooks that the fixture lab should prove.
+
 ## Summary
 
 The sampled Kagi search pages show concrete opportunities to simplify delivered
@@ -74,20 +78,20 @@ For search, Kagi serves at least two outputs:
 - JS-enhanced search: `/search?q=kagi+css+selectors&no_css=1`
 - No-JS/basic search: `/html/search?q=kagi+css+selectors&no_css=1`
 
-| Output path | HTML bytes | Elements | IDs | Class tokens | Filter panel bytes | Notes |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| `/search` | 139,598 | 1,510 | 108 | 797 | 48,326 | JS-enhanced search output |
-| `/html/search` | 174,312 | 1,966 | 355 | 1,273 | 48,598 | Basic/no-JS output with extra `_nojs` markup |
+| Output path    | HTML bytes | Elements | IDs | Class tokens | Filter panel bytes | Notes                                        |
+| -------------- | ---------: | -------: | --: | -----------: | -----------------: | -------------------------------------------- |
+| `/search`      |    139,598 |    1,510 | 108 |          797 |             48,326 | JS-enhanced search output                    |
+| `/html/search` |    174,312 |    1,966 | 355 |        1,273 |             48,598 | Basic/no-JS output with extra `_nojs` markup |
 
 Both paths linked the same core CSS assets:
 
-| CSS asset | Decoded bytes | Encoded body bytes | CSSOM `!important` declarations | ID references in selectors |
-| --- | ---: | ---: | ---: | ---: |
-| `search-layout.scss.css` | 94,182 | 16,743 | 72 | 66 |
-| `main-search-results.scss.css` | 101,300 | 17,102 | 28 | 409 |
-| `kagi_themes.scss.css` | 31,536 | 4,339 | 0 | 4 |
-| `framework/main.scss.css` | 16,819 | 3,694 | 1 | 0 |
-| `tooltip_new.scss.css` | 2,947 | 763 | 0 | 0 |
+| CSS asset                      | Decoded bytes | Encoded body bytes | CSSOM `!important` declarations | ID references in selectors |
+| ------------------------------ | ------------: | -----------------: | ------------------------------: | -------------------------: |
+| `search-layout.scss.css`       |        94,182 |             16,743 |                              72 |                         66 |
+| `main-search-results.scss.css` |       101,300 |             17,102 |                              28 |                        409 |
+| `kagi_themes.scss.css`         |        31,536 |              4,339 |                               0 |                          4 |
+| `framework/main.scss.css`      |        16,819 |              3,694 |                               1 |                          0 |
+| `tooltip_new.scss.css`         |         2,947 |                763 |                               0 |                          0 |
 
 These stylesheet counts do not prove waste by themselves. Some specificity may
 be intentional. They do show enough selector and state complexity that a
@@ -135,14 +139,14 @@ selectors.
 
 Observed filter structure:
 
-| Mode | Path | Filter structure | Notes |
-| --- | --- | --- | --- |
-| Web | `/search` | `#sidebarForm` inside `._0_filters-panel` | Lens, Region, Order, Time, Options, Advanced, Clear |
-| Images | `/images` | Same filter wrapper | Size, Color, License, Image Types, Aspect, Time, AI Images |
-| Videos | `/videos` | Same filter wrapper | Order, Time, Duration, Resolution, Source, AI Videos, Clear |
-| News | `/news` | Same filter wrapper | Order, Region, Time, Clear |
-| Podcasts | `/podcasts` | Same filter wrapper | Order, Clear |
-| Maps | `/maps` | Separate app surface | Redirects to `/maps/search`; no `#sidebarForm`/filter panel observed |
+| Mode     | Path        | Filter structure                          | Notes                                                                |
+| -------- | ----------- | ----------------------------------------- | -------------------------------------------------------------------- |
+| Web      | `/search`   | `#sidebarForm` inside `._0_filters-panel` | Lens, Region, Order, Time, Options, Advanced, Clear                  |
+| Images   | `/images`   | Same filter wrapper                       | Size, Color, License, Image Types, Aspect, Time, AI Images           |
+| Videos   | `/videos`   | Same filter wrapper                       | Order, Time, Duration, Resolution, Source, AI Videos, Clear          |
+| News     | `/news`     | Same filter wrapper                       | Order, Region, Time, Clear                                           |
+| Podcasts | `/podcasts` | Same filter wrapper                       | Order, Clear                                                         |
+| Maps     | `/maps`     | Separate app surface                      | Redirects to `/maps/search`; no `#sidebarForm`/filter panel observed |
 
 The shared filter wrapper is a good foundation. The gap is that the reusable
 concept is not expressed as stable semantics.
@@ -154,7 +158,7 @@ concept is not expressed as stable semantics.
    The initial sidebar CSS gated web-search-only styling with:
 
    ```css
-   body:has(header nav a.n_se.--active)
+   body:has(header nav a.n_se.--active);
    ```
 
    This couples layout CSS to navigation markup. It is also not a reliable
@@ -167,7 +171,7 @@ concept is not expressed as stable semantics.
    The local stylesheet now uses:
 
    ```css
-   body:has(#sidebarForm #dd_toggle_options)
+   body:has(#sidebarForm #dd_toggle_options);
    ```
 
    That makes the sidebar work on both `/search` and `/html/search`, but it is
@@ -204,11 +208,11 @@ concept is not expressed as stable semantics.
    links and measured 42,097 bytes by itself. The `href` attributes accounted
    for 12,192 bytes.
 
-   | Region option shape | Approximate bytes | Difference from current |
-   | --- | ---: | ---: |
-   | Current dropdown link markup | 42,097 | baseline |
-   | Submit-button list inside one GET form | 17,232 | -24,865 |
-   | Native `<select name="r">` options | 11,276 | -30,821 |
+   | Region option shape                    | Approximate bytes | Difference from current |
+   | -------------------------------------- | ----------------: | ----------------------: |
+   | Current dropdown link markup           |            42,097 |                baseline |
+   | Submit-button list inside one GET form |            17,232 |                 -24,865 |
+   | Native `<select name="r">` options     |            11,276 |                 -30,821 |
 
    The `<select>` shape is smallest, but it changes the UI more. A submit-button
    list can preserve a list-like control while avoiding repeated full URLs.
@@ -229,7 +233,7 @@ Example shape:
 
   <section data-kagi-filter-panel data-layout="inline">
     <form action="/html/search" method="get" data-kagi-filter-form>
-      <input type="hidden" name="q" value="kagi css selectors">
+      <input type="hidden" name="q" value="kagi css selectors" />
 
       <section
         data-kagi-filter="time"
@@ -292,7 +296,7 @@ pattern worth testing.
 
    ```html
    <form action="/html/search" method="get" data-kagi-filter-form>
-     <input type="hidden" name="q" value="kagi css selectors">
+     <input type="hidden" name="q" value="kagi css selectors" />
      <button type="submit" name="r" value="us">United States (US)</button>
      <button type="submit" name="r" value="gb">United Kingdom (GB)</button>
    </form>
@@ -367,12 +371,12 @@ hooks:
 
 Estimated Custom CSS reduction if the visual design stays roughly the same:
 
-| Kagi hook level | Expected custom CSS size | Reduction | Why |
-| --- | ---: | ---: | --- |
-| Stable mode/filter attributes only | 13-15 KB | 15-25% | Removes fragile mode and ID selectors |
-| Attributes plus dropdown state/list hooks | 8-11 KB | 40-55% | Removes most hidden-list reversal and many `!important`s |
-| Attributes plus dropdown hooks plus layout variables | 3-5 KB | 70-83% | Custom CSS mainly sets order, width, and visual style |
-| Native Kagi sidebar placement option | 0.5-2 KB | 90%+ | Custom CSS becomes preference styling |
+| Kagi hook level                                      | Expected custom CSS size | Reduction | Why                                                      |
+| ---------------------------------------------------- | -----------------------: | --------: | -------------------------------------------------------- |
+| Stable mode/filter attributes only                   |                 13-15 KB |    15-25% | Removes fragile mode and ID selectors                    |
+| Attributes plus dropdown state/list hooks            |                  8-11 KB |    40-55% | Removes most hidden-list reversal and many `!important`s |
+| Attributes plus dropdown hooks plus layout variables |                   3-5 KB |    70-83% | Custom CSS mainly sets order, width, and visual style    |
+| Native Kagi sidebar placement option                 |                 0.5-2 KB |      90%+ | Custom CSS becomes preference styling                    |
 
 The standard-output savings are separate from Custom CSS savings. The sampled
 Region filter alone shows that semantic form-oriented markup can remove tens of
