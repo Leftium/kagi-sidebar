@@ -32,8 +32,8 @@ Open the picker:
 pnpm dev
 ```
 
-Vite serves the repo root. The picker opens at `http://127.0.0.1:5173/` and
-redirects to `previewer/site/`.
+Vite serves the repo root and opens the picker at
+`http://127.0.0.1:5173/previewer/site/`.
 
 ## Captures
 

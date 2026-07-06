@@ -5,10 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --open /",
+    "dev": "vite --host 127.0.0.1 --open /previewer/site/",
     "generate": "node previewer/tools/generate-previews.mjs",
     "capture-domain-info": "node previewer/tools/capture-domain-info.mjs",
-    "format": "prettier --write README.md index.html package.json \"src/README.md\" \"src/**/*.css\" \"previewer/README.md\" \"previewer/captures/**/*.md\" \"previewer/site/**/*.{html,css,js}\" \"previewer/tools/**/*.mjs\"",
+    "format": "prettier --write README.md package.json \"src/README.md\" \"src/**/*.css\" \"previewer/README.md\" \"previewer/captures/**/*.md\" \"previewer/site/**/*.{html,css,js}\" \"previewer/tools/**/*.mjs\"",
     "check": "node --check previewer/tools/generate-previews.mjs && node --check previewer/tools/capture-domain-info.mjs && node --check previewer/site/main.js"
   },
   "devDependencies": {
