@@ -11,9 +11,8 @@ site/               Vite picker for generated pages
 tools/              capture and generation scripts
 ```
 
-`src/kagi-sidebar.css` is always included as the primary Custom CSS file. Any
-`.css` file placed directly in `previewer/custom-css/` is added as another
-picker option.
+The picker includes a `No CSS` baseline first, then `src/kagi-sidebar.css`, then
+any `.css` file placed directly in `previewer/custom-css/`.
 
 Generated output is written to the repo-level `generated/` directory and is not
 tracked.
@@ -68,6 +67,6 @@ generated/previewer/manifest.json
 generated/reports/generation-summary.json
 ```
 
-There are no HTML variants, CSS variants, or no-CSS baseline pages. The only
-reported size metric is the Custom CSS character count against Kagi's 40,000
-character limit.
+There are no HTML variants or CSS variants. The picker includes no-CSS baseline
+pages plus one page for each Custom CSS option. The only reported size metric is
+the Custom CSS character count against Kagi's 40,000 character limit.

@@ -7,7 +7,7 @@ const controls = {
 
 const preferredSelection = {
   captureId: "search",
-  customCssId: "kagi-sidebar",
+  customCssId: "no-css",
 };
 
 let manifest = {
@@ -42,6 +42,8 @@ function humanize(value) {
     enhanced: "JS",
     "html-search": "HTML",
     "kagi-sidebar": "Kagi Sidebar",
+    "no-css": "No CSS",
+    baseline: "Baseline",
     release: "Release",
     search: "JS",
   };
@@ -210,7 +212,9 @@ function renderCssFileOptions() {
     valueFor: (option) => option.id,
     labelFor: (option) => option.name || humanize(option.id),
     descriptionFor: (option) =>
-      option.source === "release"
+      option.source === "baseline"
+        ? "Captured Kagi page without Custom CSS."
+        : option.source === "release"
         ? "Current distributable sidebar CSS."
         : "Additional local Custom CSS file.",
     metaFor: (option) =>

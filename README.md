@@ -45,9 +45,9 @@ To preview your own Custom CSS:
    pnpm dev
    ```
 
-The picker opens at `http://127.0.0.1:5173/previewer/site/`. `src/kagi-sidebar.css`
-is always included, and each file in `previewer/custom-css/` appears as another
-CSS option.
+The picker opens at `http://127.0.0.1:5173/previewer/site/`. It includes a
+`No CSS` baseline first, then `src/kagi-sidebar.css`, then each file in
+`previewer/custom-css/`.
 
 Relevant files:
 

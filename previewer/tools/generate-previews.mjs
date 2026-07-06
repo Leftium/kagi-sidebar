@@ -127,6 +127,16 @@ async function cssFileMetadata({ id, name, source, relativePath }) {
 async function listCustomCssFiles() {
   const usedIds = new Set();
   const files = [
+    {
+      id: uniqueCssId("no-css", usedIds),
+      name: "No CSS",
+      source: "baseline",
+      path: null,
+      sourceBytes: 0,
+      characterCount: 0,
+      kagiCustomCssLimit,
+      overKagiLimit: false,
+    },
     await cssFileMetadata({
       id: uniqueCssId("kagi-sidebar", usedIds),
       name: "Kagi Sidebar",
@@ -408,13 +418,17 @@ function prepareForLocalViewing(html, capture, domainInfoCapture) {
 
 function injectCustomCssLink(html, page) {
   const $ = cheerio.load(html, { decodeEntities: false });
-  const href = `../../${page.cssPath}`;
-  const cssLink = `<link rel="stylesheet" href="${href}" data-previewer-custom-css="${page.customCssId}">`;
 
-  $("head").append(`\n    ${cssLink}\n  `);
+  if (page.cssPath) {
+    const href = `../../${page.cssPath}`;
+    const cssLink = `<link rel="stylesheet" href="${href}" data-previewer-custom-css="${page.customCssId}">`;
+
+    $("head").append(`\n    ${cssLink}\n  `);
+  }
+
   $("html")
     .attr("data-previewer-custom-css", page.customCssId)
-    .attr("data-previewer-custom-css-path", page.cssPath);
+    .attr("data-previewer-custom-css-path", page.cssPath ?? "");
 
   return $.html();
 }
