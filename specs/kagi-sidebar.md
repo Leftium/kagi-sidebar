@@ -336,9 +336,10 @@ Run the release against these scenarios:
 
 - Kagi may change class names or toolbar markup.
 - CSS-only implementation may require brittle positional selectors.
-- The sidebar CSS is a compatibility layer over today's Kagi DOM. Proposal
-  work found that additive semantic hooks would improve selector clarity, but
-  would not by themselves remove the layout and dropdown-reversal complexity.
+- The sidebar CSS is a compatibility layer over today's Kagi DOM. The semantic
+  hooks and components proposal found that additive hooks would improve selector
+  clarity, but would not by themselves remove the layout and dropdown-reversal
+  complexity.
 - The current `/html/search` gate depends on the private `#dd_toggle_options`
   ID rather than a stable result-mode hook.
 - Moving controls may break behavior if Kagi relies on ancestor structure.

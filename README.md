@@ -6,7 +6,7 @@ that moves web search filters into a compact desktop sidebar.
 ```text
 src/        distributable Kagi Custom CSS
 previewer/  local capture previewer for visual checks
-proposal/   maintainer-facing Kagi HTML/CSS proposal drafts
+proposal/   maintainer-facing semantic hooks and components proposal
 specs/      sidebar notes and historical planning docs
 generated/  reproducible preview output, ignored by git
 ```
@@ -41,7 +41,8 @@ previewer tools change.
 - `specs/kagi-sidebar.md` documents the sidebar release scope and behavior.
 - `previewer/` opens captured Kagi pages with `src/kagi-sidebar.css` or extra
   local Custom CSS files.
-- `proposal/` keeps maintainer-facing proposal drafts for reference.
+- `proposal/` keeps the maintainer-facing semantic hooks and components
+  proposal for reference.
 
 ## License
 

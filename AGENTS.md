@@ -10,7 +10,7 @@ Primary files:
 
 - `specs/kagi-sidebar.md` - Sidebar product and implementation spec.
 - `src/kagi-sidebar.css` - CSS-only Kagi Custom CSS stylesheet.
-- `proposal/` - Maintainer-facing Kagi HTML/CSS optimization proposal drafts.
+- `proposal/` - Maintainer-facing Kagi semantic hooks and components proposal.
 - `previewer/` - Source captures, optional Custom CSS files, tools, and Vite site.
 - `generated/` - Ignored reproducible preview output.
 

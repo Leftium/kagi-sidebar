@@ -169,8 +169,7 @@ kagi-sidebar/
     README.md
 
   proposal/
-    making-kagi-simpler-smaller-easier-to-customize.md
-    appendix-real-world-kagi-custom-css.md
+    kagi-semantic-hooks-and-components.md
 
   specs/
     kagi-sidebar.md
@@ -196,7 +195,8 @@ kagi-sidebar/
 Tracked source:
 
 - `sidebar/`: the distributable Custom CSS and sidebar-specific docs.
-- `proposal/`: the maintainer-facing Kagi proposal and appendices.
+- `proposal/`: the maintainer-facing Kagi semantic hooks and components
+  proposal.
 - `specs/`: planning and implementation specs.
 - `fixture-lab/captures/original/`: redacted source captures.
 - `fixture-lab/css-corpus/`: original public CSS samples and semantic rewrites.
@@ -639,10 +639,10 @@ Generated HTML should still be inspectable as static files when possible.
 
 ### Phase 6: Proposal Rewrite
 
-- Update `making-kagi-simpler-smaller-easier-to-customize.md` from the new
-  measured results.
+- Consolidate proposal work into
+  `proposal/kagi-semantic-hooks-and-components.md`.
 - Keep the article focused on the Kagi proposal, not the tooling.
-- Move bulky survey details into an appendix or generated report.
+- Cut bulky survey and measurement details from the maintainer-facing draft.
 
 ### Phase 7: Narrowed Semantic Sidebar Follow-Up
 
@@ -747,6 +747,5 @@ stateful app. Vite is a server and workflow tool here.
 - OpenKagi themes: https://openkagi.com/
 - Awesome Kagi CSS: https://github.com/kawaiier/awesome-kagi-css
 - Kagi Darker: https://github.com/realrogue/kagi-darker
-- Current appendix: `proposal/appendix-real-world-kagi-custom-css.md`
-- Current proposal draft: `proposal/making-kagi-simpler-smaller-easier-to-customize.md`
-- Sidebar stylesheet: `sidebar/kagi-sidebar.css`
+- Current proposal draft: `proposal/kagi-semantic-hooks-and-components.md`
+- Sidebar stylesheet: `src/kagi-sidebar.css`

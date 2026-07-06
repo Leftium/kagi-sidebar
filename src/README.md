@@ -49,8 +49,8 @@ After installing, check:
 - `kagi-sidebar.css` - pasteable Kagi Custom CSS stylesheet.
 - `../specs/kagi-sidebar.md` - release scope, behavior, and implementation
   notes.
-- `../proposal/making-kagi-simpler-smaller-easier-to-customize.md` -
-  maintainer-facing Kagi frontend simplification and Custom CSS hook proposal.
+- `../proposal/kagi-semantic-hooks-and-components.md` - maintainer-facing Kagi
+  semantic hooks and Custom CSS component proposal.
 - `../previewer/` - local previewer for testing Custom CSS against captured
   Kagi search pages.
 
